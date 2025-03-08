@@ -13,10 +13,7 @@
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
-<<<<<<< HEAD
-=======
         "laravel/breeze": "^1.29",
->>>>>>> b7b2b51 (Initial commit: Laravel project setup)
         "laravel/pint": "^1.0",
         "laravel/sail": "^1.18",
         "mockery/mockery": "^1.4.4",
