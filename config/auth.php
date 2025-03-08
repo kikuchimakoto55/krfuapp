@@ -35,7 +35,6 @@ return [
     |
     */
 
-
 'guards' => [
     'web' => [
         'driver' => 'session',
@@ -46,7 +45,6 @@ return [
         'provider' => 'users',
     ],
 ],
-
 
     /*
     |--------------------------------------------------------------------------
@@ -65,27 +63,13 @@ return [
     |
     */
 
-<<<<<<< HEAD
-    'providers' => [
-        'users' => [
-            'driver' => 'eloquent',
-            'model' => App\Models\User::class,
-        ],
-
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
-    ],
-
-=======
 'providers' => [
     'users' => [
         'driver' => 'eloquent',
         'model' => App\Models\TMember::class, // 🔥 `User` から `TMember` に変更
     ],
 ],
->>>>>>> b7b2b51 (Initial commit: Laravel project setup)
+
     /*
     |--------------------------------------------------------------------------
     | Resetting Passwords

@@ -56,12 +56,7 @@ return [
     */
 
     'url' => env('APP_URL', 'http://localhost'),
-
-<<<<<<< HEAD
-=======
     'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
-
->>>>>>> b7b2b51 (Initial commit: Laravel project setup)
     'asset_url' => env('ASSET_URL'),
 
     /*

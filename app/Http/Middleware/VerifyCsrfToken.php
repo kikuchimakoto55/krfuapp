@@ -12,10 +12,7 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-<<<<<<< HEAD
-        //
-=======
        'api/*'
->>>>>>> b7b2b51 (Initial commit: Laravel project setup)
+
     ];
 }

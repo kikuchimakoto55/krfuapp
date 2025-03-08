@@ -1,36 +1,40 @@
 <?php
 
-namespace App\Http;
+namespace App\Providers;
 
-use Illuminate\Foundation\Http\Kernel as HttpKernel;
-use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 
-class Kernel extends HttpKernel
+class RouteServiceProvider extends ServiceProvider
 {
     /**
-     * The application's global HTTP middleware stack.
+     * The path to your application's "home" route.
      *
-     * These middleware are run during every request to your application.
+     * Typically, users are redirected here after authentication.
      *
-     * @var array
+     * @var string
      */
-    protected $middleware = [
-        // Add your global middleware here
-    ];
+    public const HOME = '/dashboard';
 
     /**
-     * The application's route middleware groups.
-     *
-     * @var array
+     * Define your route model bindings, pattern filters, and other route configuration.
      */
-    protected $middlewareGroups = [
-        'web' => [
-            // Add your web middleware here
-        ],
+    public function boot(): void
+    {
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
 
-        'api' => [
-            EnsureFrontendRequestsAreStateful::class,
-            // Add other API middleware here
-        ],
-    ];
+        $this->routes(function () {
+            Route::middleware('api')
+                ->prefix('api')
+                ->group(base_path('routes/api.php'));
+
+            Route::middleware('web')
+                ->group(base_path('routes/web.php'));
+        });
+    }
 }
