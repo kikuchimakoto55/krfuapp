@@ -17,11 +17,7 @@ class RouteServiceProvider extends ServiceProvider
      *
      * @var string
      */
-<<<<<<< HEAD
-    public const HOME = '/home';
-=======
     public const HOME = '/dashboard';
->>>>>>> b7b2b51 (Initial commit: Laravel project setup)
 
     /**
      * Define your route model bindings, pattern filters, and other route configuration.
