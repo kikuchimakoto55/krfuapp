@@ -3,27 +3,18 @@
 namespace App\Http;
 
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
-<<<<<<< HEAD
-=======
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
->>>>>>> b7b2b51 (Initial commit: Laravel project setup)
 
 class Kernel extends HttpKernel
 {
     /**
-<<<<<<< HEAD
      * The application's global HTTP middleware stack.
      *
      * These middleware are run during every request to your application.
-=======
-     * アプリケーションのグローバル HTTP ミドルウェアスタック。
-     * これらのミドルウェアは、すべてのリクエストに適用されます。
->>>>>>> b7b2b51 (Initial commit: Laravel project setup)
      *
      * @var array<int, class-string|string>
      */
     protected $middleware = [
-        // \App\Http\Middleware\TrustHosts::class,
         \App\Http\Middleware\TrustProxies::class,
         \Illuminate\Http\Middleware\HandleCors::class,
         \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
@@ -33,11 +24,7 @@ class Kernel extends HttpKernel
     ];
 
     /**
-<<<<<<< HEAD
      * The application's route middleware groups.
-=======
-     * アプリケーションのルートミドルウェアグループ。
->>>>>>> b7b2b51 (Initial commit: Laravel project setup)
      *
      * @var array<string, array<int, class-string|string>>
      */
@@ -52,26 +39,16 @@ class Kernel extends HttpKernel
         ],
 
         'api' => [
-<<<<<<< HEAD
-            // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-            \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
-=======
-            EnsureFrontendRequestsAreStateful::class, // フロントエンドからのリクエストを許可
-            'throttle:api', // APIのリクエスト制限
->>>>>>> b7b2b51 (Initial commit: Laravel project setup)
+            EnsureFrontendRequestsAreStateful::class,
+            'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
     ];
 
     /**
-<<<<<<< HEAD
      * The application's middleware aliases.
      *
      * Aliases may be used instead of class names to conveniently assign middleware to routes and groups.
-=======
-     * アプリケーションのミドルウェアエイリアス。
-     * エイリアスを使用することで、ルートでミドルウェアを簡単に指定可能。
->>>>>>> b7b2b51 (Initial commit: Laravel project setup)
      *
      * @var array<string, class-string|string>
      */
@@ -86,11 +63,7 @@ class Kernel extends HttpKernel
         'precognitive' => \Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests::class,
         'signed' => \App\Http\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
-<<<<<<< HEAD
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-=======
-        'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
-        'sanctum' => \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class, // Sanctum用ミドルウェア
->>>>>>> b7b2b51 (Initial commit: Laravel project setup)
+        'sanctum' => \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
     ];
 }
