@@ -89,3 +89,8 @@ Route::middleware('auth:sanctum')->post('/change-password', function (Request $r
 
 //ルート追加
 Route::middleware(['auth:sanctum'])->get('/members', [MemberController::class, 'index']);
+
+// 会員一覧取得API (必要な情報のみ取得)
+Route::middleware(['auth:sanctum'])->get('/members', function (Request $request) {
+    return Member::select('username_sei', 'username_mei', 'email', 'grade_category', 'status', 'membershipfee_conf')->get();
+});
