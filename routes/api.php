@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Member; // t_members 用のモデル
+use App\Http\Controllers\MemberController;
 
 // Sanctum の CSRF Cookie を取得
 Route::get('/sanctum/csrf-cookie', function (Request $request) {
@@ -85,3 +86,6 @@ Route::middleware('auth:sanctum')->post('/change-password', function (Request $r
 
     return response()->json(['message' => 'パスワードを変更しました']);
 });
+
+//ルート追加
+Route::middleware(['auth:sanctum'])->get('/members', [MemberController::class, 'index']);
