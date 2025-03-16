@@ -9,7 +9,6 @@ class MemberController extends Controller
 {
     public function index(Request $request)
     {
-        
         // 🔹 受信した検索条件を確認（デバッグ用）
         \Log::info('検索条件:', $request->all());
 
@@ -60,11 +59,32 @@ class MemberController extends Controller
             $query->where('status', intval($request->status));
         }
         if ($request->filled('graduation_year')) {
-            $query->whereYear('graduation_year', $request->graduation_year);
+            $query->whereYear('graduation_year', intval($request->graduation_year));
         }
         if ($request->filled('coach_flg')) {
             $query->where('coach_flg', intval($request->coach_flg));
         }
+
+        // 🔹 新しく追加した検索条件
+        if ($request->filled('emergency_name1')) {
+            $query->where('emergency_name1', 'like', '%' . $request->emergency_name1 . '%');
+        }
+        if ($request->filled('emergency_email1')) {
+            $query->where('emergency_email1', 'like', '%' . $request->emergency_email1 . '%');
+        }
+        if ($request->filled('emergency_tel1')) {
+            $query->where('emergency_tel1', $request->emergency_tel1);
+        }
+        if ($request->filled('email')) {
+            $query->where('email', 'like', '%' . $request->email . '%');
+        }
+        if ($request->filled('tel')) {
+            $query->where('tel', $request->tel); // 完全一致
+        }
+        if ($request->filled('membershipfee_conf')) {
+            $query->where('membershipfee_conf', intval($request->membershipfee_conf));
+        }
+
 
         // 🔹 検索結果を取得
         $members = $query->get();
