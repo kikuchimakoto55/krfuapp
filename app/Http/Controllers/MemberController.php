@@ -85,9 +85,8 @@ class MemberController extends Controller
             $query->where('membershipfee_conf', intval($request->membershipfee_conf));
         }
 
-
-        // 🔹 検索結果を取得
-        $members = $query->get();
+        // 🔹 ページネーションを適用（1ページ10件）
+        $members = $query->paginate(10);
 
         return response()->json($members);
     }
