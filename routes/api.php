@@ -90,3 +90,5 @@ Route::middleware('auth:sanctum')->post('/change-password', function (Request $r
 //ルート追加
 Route::middleware(['auth:sanctum'])->get('/members', [MemberController::class, 'index']);
 
+// 🔹 **会員登録APIを追加**
+Route::middleware(['auth:sanctum'])->post('/members', [MemberController::class, 'store']);

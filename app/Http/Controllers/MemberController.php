@@ -90,4 +90,26 @@ class MemberController extends Controller
 
         return response()->json($members);
     }
+    /**
+     * 🔹 会員登録処理（バリデーション適用）
+     */
+    public function store(Request $request)
+    {
+        // 🔹 入力バリデーション
+        $validated = $request->validate([
+            'username_sei' => 'nullable|string|max:15',
+            'username_mei' => 'nullable|string|max:15',
+            'guardian_tel' => 'nullable|digits_between:8,11',
+            'email' => 'nullable|email|max:100',
+            'graduation_year' => 'nullable|digits:4',
+        ]);
+
+        // 🔹 新しい会員データを作成
+        $member = Member::create($validated);
+
+        return response()->json([
+            'message' => '会員登録が完了しました',
+            'data' => $member
+        ], 201);
+    }
 }
