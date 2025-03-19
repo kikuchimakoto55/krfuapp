@@ -16,7 +16,7 @@ class MemberController extends Controller
         $query = Member::where('del_flg', 0);
 
         // 🔹 条件ごとにフィルタリング
-        if ($request->filled('grade_category')) {
+        if ($request->filled('grade_category') && is_numeric($request->grade_category)) {
             $query->where('grade_category', intval($request->grade_category));
         }
         if ($request->filled('username_sei')) {
@@ -46,22 +46,22 @@ class MemberController extends Controller
         if ($request->filled('guardian_email')) {
             $query->where('guardian_email', 'like', '%' . $request->guardian_email . '%');
         }
-        if ($request->filled('guardian_tel')) {
+        if ($request->filled('guardian_tel') && is_numeric($request->guardian_tel)) {
             $query->where('guardian_tel', $request->guardian_tel);
         }
         if ($request->filled('registration_date')) {
             $query->whereDate('registration_date', $request->registration_date);
         }
-        if ($request->filled('classification')) {
+        if ($request->filled('classification') && is_numeric($request->classification)) {
             $query->where('classification', intval($request->classification));
         }
-        if ($request->filled('status')) {
+        if ($request->filled('status') && is_numeric($request->status)) {
             $query->where('status', intval($request->status));
         }
-        if ($request->filled('graduation_year')) {
+        if ($request->filled('graduation_year') && is_numeric($request->graduation_year)) {
             $query->whereYear('graduation_year', intval($request->graduation_year));
         }
-        if ($request->filled('coach_flg')) {
+        if ($request->filled('coach_flg') && is_numeric($request->coach_flg)) {
             $query->where('coach_flg', intval($request->coach_flg));
         }
 
@@ -72,16 +72,16 @@ class MemberController extends Controller
         if ($request->filled('emergency_email1')) {
             $query->where('emergency_email1', 'like', '%' . $request->emergency_email1 . '%');
         }
-        if ($request->filled('emergency_tel1')) {
+        if ($request->filled('emergency_tel1') && is_numeric($request->emergency_tel1)) {
             $query->where('emergency_tel1', $request->emergency_tel1);
         }
         if ($request->filled('email')) {
             $query->where('email', 'like', '%' . $request->email . '%');
         }
-        if ($request->filled('tel')) {
+        if ($request->filled('tel') && is_numeric($request->tel)) {
             $query->where('tel', $request->tel); // 完全一致
         }
-        if ($request->filled('membershipfee_conf')) {
+        if ($request->filled('membershipfee_conf') && is_numeric($request->membershipfee_conf)) {
             $query->where('membershipfee_conf', intval($request->membershipfee_conf));
         }
 
