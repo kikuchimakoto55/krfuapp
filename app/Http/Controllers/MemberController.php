@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Member;
+use App\Http\Requests\StoreMemberRequest;
+use Illuminate\Support\Facades\Hash;
 
 class MemberController extends Controller
 {
@@ -90,26 +92,18 @@ class MemberController extends Controller
 
         return response()->json($members);
     }
-    /**
-     * 🔹 会員登録処理（バリデーション適用）
-     */
-    public function store(Request $request)
-    {
-        // 🔹 入力バリデーション
-        $validated = $request->validate([
-            'username_sei' => 'nullable|string|max:15',
-            'username_mei' => 'nullable|string|max:15',
-            'guardian_tel' => 'nullable|digits_between:8,11',
-            'email' => 'nullable|email|max:100',
-            'graduation_year' => 'nullable|digits:4',
-        ]);
+    //会員登録処理（バリデーション適用）
+    public function store(StoreMemberRequest $request)
+{
+    // 🔹 FormRequest（StoreMemberRequest）にてバリデーション済み
+    $validated = $request->validated();
 
-        // 🔹 新しい会員データを作成
-        $member = Member::create($validated);
+    // 🔐 パスワードをハッシュ化
+    $validated['password'] = Hash::make($validated['password']);
 
-        return response()->json([
-            'message' => '会員登録が完了しました',
-            'data' => $member
-        ], 201);
-    }
+    // 🔹 新しい会員データを作成
+    $member = Member::create($validated);
+
+    return response()->json(['message' => '登録完了', 'member' => $member], 201);
+}
 }
