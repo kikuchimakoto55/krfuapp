@@ -87,8 +87,8 @@ Route::middleware('auth:sanctum')->post('/change-password', function (Request $r
     return response()->json(['message' => 'パスワードを変更しました']);
 });
 
-//ルート追加
+// 一覧取得はログインが必要（そのままでOK）
 Route::middleware(['auth:sanctum'])->get('/members', [MemberController::class, 'index']);
 
-// 🔹 **会員登録APIを追加**
-Route::middleware(['auth:sanctum'])->post('/members', [MemberController::class, 'store']);
+// 🔓 会員登録はログインなしでもOKにする
+Route::post('/members', [MemberController::class, 'store']);

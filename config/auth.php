@@ -41,8 +41,8 @@ return [
         'provider' => 'users',
     ],
     'api' => [
-        'driver' => 'sanctum', // 🔥 ここが 'sanctum' になっているかチェック
-        'provider' => 'users',
+    'driver' => 'sanctum',
+    'provider' => 'members', // ✅ `members` に変更！
     ],
 ],
 
@@ -67,6 +67,11 @@ return [
     'users' => [
         'driver' => 'eloquent',
         'model' => App\Models\TMember::class, // 🔥 `User` から `TMember` に変更
+    ],
+
+    'members' => [ // ← これを追加
+        'driver' => 'eloquent',
+        'model' => App\Models\Member::class,
     ],
 ],
 

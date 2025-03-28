@@ -47,6 +47,7 @@ class Member extends Authenticatable
         'graduation_year',
         'authoritykinds_id',
         'coach_flg',
+        'del_flg',
         'password',
         'registration_date' // もし手動追加するならこれも
     ];
