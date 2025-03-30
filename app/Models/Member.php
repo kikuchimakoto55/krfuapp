@@ -11,7 +11,8 @@ class Member extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $table = 't_members'; // テーブル名を指定
-
+    protected $primaryKey = 'member_id';
+    public $timestamps = true;
     protected $fillable = [
         'grade_category',
         'username_sei',
