@@ -92,3 +92,8 @@ Route::middleware(['auth:sanctum'])->get('/members', [MemberController::class, '
 
 // 🔓 会員登録はログインなしでもOKにする
 Route::post('/members', [MemberController::class, 'store']);
+
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/members/{id}', [MemberController::class, 'show']); // ← 認証付きに変更
+});

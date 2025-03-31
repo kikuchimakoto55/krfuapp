@@ -106,4 +106,52 @@ class MemberController extends Controller
 
     return response()->json(['message' => '登録完了', 'member' => $member], 201);
 }
+
+// 会員情報の取得（編集用）
+public function edit($id)
+{
+    $member = Member::findOrFail($id);
+    return response()->json($member);
+}
+
+// 会員情報の更新
+public function update(UpdateMemberRequest $request, $id)
+{
+    $member = Member::findOrFail($id);
+
+    $data = $request->all();
+
+    // 🔐 パスワードが送信されていた場合、管理者かどうかチェック
+    if ($request->filled('password')) {
+        // 管理者判定ロジック（例：ログインユーザーの権限を確認）ログインユーザーの権限種別 ID が 1（管理者）以外の場合はパスワード変更不可
+        if (!auth()->check() || auth()->user()->authoritykinds_id !== 1) {
+            return response()->json(['message' => 'パスワードの変更権限がありません'], 403);
+        }
+
+        $data['password'] = Hash::make($request->password);
+    } else {
+        // パスワードがない場合は既存の password を保持
+        unset($data['password']);
+    }
+    if ($request->filled('password')) {
+        $member->password = Hash::make($request->password);
+    }
+
+    $member->update($data);
+
+    return response()->json(['message' => '更新完了']);
+}
+
+// 会員詳細の取得（詳細画面表示用）
+public function show($id)
+{
+    $member = Member::find($id);
+
+    if (!$member) {
+        return response()->json(['message' => '会員が見つかりません'], 404);
+    }
+
+    return response()->json(['member' => $member]);
+}
+
 }
