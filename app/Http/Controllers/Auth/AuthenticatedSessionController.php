@@ -15,27 +15,35 @@ class AuthenticatedSessionController extends Controller
      * Handle an incoming authentication request.
      */
     public function store(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
+{
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
+
+    // 🔹 `t_members` からユーザーを検索
+    $member = TMember::where('email', $request->email)->first();
+
+    // 🔹 パスワードチェック
+    if (!$member || !password_verify($request->password, $member->password)) {
+        throw ValidationException::withMessages([
+            'email' => ['認証に失敗しました。'],
         ]);
-
-        // 🔹 `t_members` からユーザーを検索
-        $member = TMember::where('email', $request->email)->first();
-
-        // 🔹 パスワードチェック
-        if (!$member || !password_verify($request->password, $member->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['認証に失敗しました。'],
-            ]);
-        }
-
-        // 🔹 API トークンの作成
-        $token = $member->createToken('authToken')->plainTextToken;
-
-        return response()->json(['token' => $token]);
     }
+
+    // 🔹 API トークンの作成
+    $token = $member->createToken('authToken')->plainTextToken;
+
+    // 🔹 必要な情報を返却（フロントで保存するため）
+    return response()->json([
+        'token' => $token,
+        'user' => [
+            'member_id' => $member->member_id,
+            'authoritykinds_id' => $member->authoritykinds_id,
+            'authoritykindsname' => $member->authoritykindsname,
+        ]
+    ]);
+}
 
     /**
      * Destroy an authenticated session.
