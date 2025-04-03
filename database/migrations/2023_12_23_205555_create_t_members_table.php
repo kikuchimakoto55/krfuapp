@@ -12,8 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('t_members', function (Blueprint $table) {
-            $table->bigIncrements("id")->comment('システムID')->nullable(false);
-            $table->integer("member_id")->comment('会員番号')->nullable(false)->unique();
+            $table->integer("member_id")->autoIncrement()->comment('会員番号');
             $table->smallInteger('grade_category')->comment('学年カテゴリ')->nullable(false);
             $table->string("username_sei",20)->comment('氏名 (姓)')->nullable(false);
             $table->string("username_mei",20)->comment('氏名 (名)')->nullable(false);
@@ -23,8 +22,8 @@ return new class extends Migration
             $table->string("username_en_m",20)->comment('氏名 (名)英')->nullable(false);
             $table->smallInteger('sex')->comment('性別')->nullable(false);
             $table->date("birthday")->comment('生年月日')->nullable(false);
-            $table->double("height",3,2)->comment('身長')->nullable(false);
-            $table->double("weight",3,2)->comment('体重')->nullable(false);
+            $table->smallInteger('height')->comment('身長（cm）')->nullable(false);
+            $table->smallInteger('weight')->comment('体重（kg）')->nullable(false);
             $table->smallInteger('blood_type')->comment('血液型')->nullable(true);
             $table->string('zip',7)->comment('郵便番号')->nullable(false);
             $table->string('address1',10)->comment('都道府県')->nullable(false);
@@ -41,19 +40,19 @@ return new class extends Migration
             $table->string('email',100)->comment('本人メールアドレス')->nullable(true)->unique();
             $table->unsignedBigInteger('tel')->comment('本人電話番号')->nullable(true);
             $table->text('remarks')->comment('備考')->nullable(true);
-            $table->datetime('registration_date', $precision = 0)->comment('登録日')->nullable(false);
+            $table->datetime('registration_date')->default(DB::raw('CURRENT_TIMESTAMP'))->comment('登録日');
             $table->smallInteger('classification')->comment('所属区分')->nullable(true);
             $table->integer('membershipfee_conf')->comment('保険登録番号')->nullable(true);
             $table->integer('association_id')->comment('協会登録番号')->nullable(true);
             $table->smallInteger('status')->comment('在籍状況')->nullable(false);
-            $table->date('graduation_year')->comment('卒業年度')->nullable(false);
+            $table->integer('graduation_year')->nullable()->comment('卒業年度');
             $table->string('password')->comment('パスワード')->nullable(false);
             $table->smallInteger('authoritykinds_id')->comment('権限種別ID')->nullable(true);
             $table->string('authoritykindsname',30)->comment('権限種別名称')->nullable(true);
-            $table->datetime('login_date', $precision = 0)->comment('最終ログイン日時')->nullable(false);
-            $table->datetime('update_date', $precision = 0)->comment('更新日')->nullable(false);
+            $table->datetime('login_date')->default(DB::raw('CURRENT_TIMESTAMP'))->comment('最終ログイン日時');
+            $table->datetime('update_date')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'))->comment('更新日');
             $table->smallInteger('coach_flg')->comment('指導員フラグ')->nullable(false);
-            $table->smallInteger('del_flg')->comment('削除フラグ')->nullable(false);
+            $table->smallInteger('del_flg')->comment('削除フラグ')->nullable(false)->default(0);
         });
     }
 

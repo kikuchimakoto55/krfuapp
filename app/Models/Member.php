@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,9 +11,13 @@ class Member extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    protected $table = 't_members'; // テーブル名を指定
+    protected $table = 't_members';
     protected $primaryKey = 'member_id';
-    public $timestamps = true;
+    public $incrementing = true;
+    protected $keyType = 'int';
+
+    public $timestamps = false; // registration_date / update_date を使う場合は false に！
+
     protected $fillable = [
         'grade_category',
         'username_sei',
@@ -50,7 +55,10 @@ class Member extends Authenticatable
         'coach_flg',
         'del_flg',
         'password',
-        'registration_date' // もし手動追加するならこれも
+        'registration_date',
+        'update_date',
+        'login_date',
+        'authoritykindsname'
     ];
 
     protected $hidden = [

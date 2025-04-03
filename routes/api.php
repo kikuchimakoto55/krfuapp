@@ -8,9 +8,10 @@ use App\Models\Member; // t_members 用のモデル
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\PasswordController;
 
+
 // Sanctum の CSRF Cookie を取得
 Route::get('/sanctum/csrf-cookie', function (Request $request) {
-    return response()->noContent(); // CSRF Cookie をセット
+return response()->noContent(); // CSRF Cookie をセット
 });
 
 // ログイン処理
@@ -45,11 +46,13 @@ Route::middleware('auth:sanctum')->post('/logout', function (Request $request) {
     $user = $request->user();
 
     if ($user) {
-        $user->tokens()->delete();
+        $user->tokens()->delete(); // ← トークンを削除
     }
 
-    // CSRF Cookie を削除
-    return response()->json(['message' => 'ログアウトしました'])->cookie('XSRF-TOKEN', '', -1);
+    // 🔴 LaravelセッションとCSRF Cookieの両方を無効化して返す
+    return response()->json(['message' => 'ログアウトしました'])
+        ->cookie('XSRF-TOKEN', '', -1)
+        ->cookie('laravel_session', '', -1);
 });
 
 // 認証済みユーザー情報を取得

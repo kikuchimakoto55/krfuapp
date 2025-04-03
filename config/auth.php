@@ -71,7 +71,7 @@ return [
 
     'members' => [ // ← これを追加
         'driver' => 'eloquent',
-        'model' => App\Models\Member::class,
+        'model' => App\Models\TMember::class,
     ],
 ],
 
