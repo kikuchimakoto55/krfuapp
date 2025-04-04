@@ -98,10 +98,10 @@ Route::middleware(['auth:sanctum'])->get('/members', [MemberController::class, '
 Route::post('/members', [MemberController::class, 'store']);
 
 
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/members/{id}', [MemberController::class, 'show']); // ← 認証付きに変更
-
 // POST /api/change-password に対応する処理（現パスワードチェック、更新）を追加
-Route::middleware(['auth:sanctum'])->post('/change-password', [PasswordController::class, 'change']);
-
+//マイページルーティング
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/members/{id}', [MemberController::class, 'show']);
+    Route::put('/members/{id}', [MemberController::class, 'update']);
+    Route::post('/change-password', [PasswordController::class, 'change']);
 });

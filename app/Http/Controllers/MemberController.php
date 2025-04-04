@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Member;
 use App\Http\Requests\StoreMemberRequest;
 use Illuminate\Support\Facades\Hash;
+use App\Http\Requests\UpdateMemberRequest;
 
 class MemberController extends Controller
 {
@@ -118,29 +119,28 @@ public function edit($id)
 public function update(UpdateMemberRequest $request, $id)
 {
     $member = Member::findOrFail($id);
-
     $data = $request->all();
 
-    // 🔐 パスワードが送信されていた場合、管理者かどうかチェック
+    // 🔐 パスワードが送信されていた場合のみ処理（空のときは無視）
     if ($request->filled('password')) {
-        // 管理者判定ロジック（例：ログインユーザーの権限を確認）ログインユーザーの権限種別 ID が 1（管理者）以外の場合はパスワード変更不可
+        // 🔐 管理者チェック
         if (!auth()->check() || auth()->user()->authoritykinds_id !== 1) {
             return response()->json(['message' => 'パスワードの変更権限がありません'], 403);
         }
 
+        // ハッシュ化してデータに含める
         $data['password'] = Hash::make($request->password);
     } else {
-        // パスワードがない場合は既存の password を保持
+        // パスワードが空の場合は update 対象から除外
         unset($data['password']);
     }
-    if ($request->filled('password')) {
-        $member->password = Hash::make($request->password);
-    }
 
+    // 🔄 更新
     $member->update($data);
 
-    return response()->json(['message' => '更新完了']);
+    return response()->json(['message' => '更新完了', 'member' => $member], 200);
 }
+
 
 // 会員詳細の取得（詳細画面表示用）
 public function show($id)
