@@ -55,6 +55,10 @@ class MemberController extends Controller
             $query->where($field, $request->$field);
         }
     }
+
+        // 🔹 並び順（IDの降順で安定化）
+        $query->orderBy('member_id', 'desc');
+
         // 🔹 ページネーションを適用（1ページ10件）
         $members = $query->simplePaginate(10);
 
@@ -119,6 +123,20 @@ public function show($id)
     }
 
     return response()->json(['member' => $member]);
+}
+
+public function destroy($id)
+{
+    // 権限確認（管理者 or 運営のみ削除可）
+    if (!auth()->check() || !in_array(auth()->user()->authoritykinds_id, [1, 2])) {
+        return response()->json(['message' => '削除権限がありません'], 403);
+    }
+
+    $member = Member::findOrFail($id);
+    $member->del_flg = 1; // 論理削除
+    $member->save();
+
+    return response()->json(['message' => '削除完了']);
 }
 
 }
