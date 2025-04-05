@@ -11,85 +11,52 @@ use App\Http\Requests\UpdateMemberRequest;
 class MemberController extends Controller
 {
     public function index(Request $request)
-    {
-        // 🔹 受信した検索条件を確認（デバッグ用）
-        \Log::info('検索条件:', $request->all());
+{
+	// 受信した検索条件を確認（デバッグ用）
+    \Log::info('検索条件:', $request->all());
+	// 検索クエリを開始（削除フラグが 0 のデータのみ取得）
+    $query = Member::where('del_flg', 0);
 
-        // 🔹 検索クエリを開始（削除フラグが 0 のデータのみ取得）
-        $query = Member::where('del_flg', 0);
+    // 数値型（完全一致）検索項目
+    $intFields = [
+        'grade_category', 'classification', 'status', 'graduation_year',
+        'coach_flg', 'membershipfee_conf'
+    ];
+    foreach ($intFields as $field) {
+        if ($request->filled($field) && is_numeric($request->$field)) {
+            $query->where($field, intval($request->$field));
+        }
+    }
 
-        // 🔹 条件ごとにフィルタリング
-        if ($request->filled('grade_category') && is_numeric($request->grade_category)) {
-            $query->where('grade_category', intval($request->grade_category));
+    // あいまい検索（like）対象フィールド
+    $likeFields = [
+        'username_sei', 'username_mei', 'username_kana_s', 'username_kana_m',
+        'address1', 'address2', 'guardian_name', 'guardian_email',
+        'emergency_name1', 'emergency_email1', 'email'
+    ];
+    foreach ($likeFields as $field) {
+        if ($request->filled($field)) {
+            $query->where($field, 'like', '%' . $request->$field . '%');
         }
-        if ($request->filled('username_sei')) {
-            $query->where('username_sei', 'like', '%' . $request->username_sei . '%');
-        }
-        if ($request->filled('username_mei')) {
-            $query->where('username_mei', 'like', '%' . $request->username_mei . '%');
-        }
-        if ($request->filled('username_kana_s')) {
-            $query->where('username_kana_s', 'like', '%' . $request->username_kana_s . '%');
-        }
-        if ($request->filled('username_kana_m')) {
-            $query->where('username_kana_m', 'like', '%' . $request->username_kana_m . '%');
-        }
-        if ($request->filled('birthday')) {
-            $query->whereDate('birthday', $request->birthday);
-        }
-        if ($request->filled('address1')) {
-            $query->where('address1', 'like', '%' . $request->address1 . '%');
-        }
-        if ($request->filled('address2')) {
-            $query->where('address2', 'like', '%' . $request->address2 . '%');
-        }
-        if ($request->filled('guardian_name')) {
-            $query->where('guardian_name', 'like', '%' . $request->guardian_name . '%');
-        }
-        if ($request->filled('guardian_email')) {
-            $query->where('guardian_email', 'like', '%' . $request->guardian_email . '%');
-        }
-        if ($request->filled('guardian_tel') && is_numeric($request->guardian_tel)) {
-            $query->where('guardian_tel', $request->guardian_tel);
-        }
-        if ($request->filled('registration_date')) {
-            $query->whereDate('registration_date', $request->registration_date);
-        }
-        if ($request->filled('classification') && is_numeric($request->classification)) {
-            $query->where('classification', intval($request->classification));
-        }
-        if ($request->filled('status') && is_numeric($request->status)) {
-            $query->where('status', intval($request->status));
-        }
-        if ($request->filled('graduation_year') && is_numeric($request->graduation_year)) {
-            $query->whereYear('graduation_year', intval($request->graduation_year));
-        }
-        if ($request->filled('coach_flg') && is_numeric($request->coach_flg)) {
-            $query->where('coach_flg', intval($request->coach_flg));
-        }
+    }
 
-        // 🔹 新しく追加した検索条件
-        if ($request->filled('emergency_name1')) {
-            $query->where('emergency_name1', 'like', '%' . $request->emergency_name1 . '%');
-        }
-        if ($request->filled('emergency_email1')) {
-            $query->where('emergency_email1', 'like', '%' . $request->emergency_email1 . '%');
-        }
-        if ($request->filled('emergency_tel1') && is_numeric($request->emergency_tel1)) {
-            $query->where('emergency_tel1', $request->emergency_tel1);
-        }
-        if ($request->filled('email')) {
-            $query->where('email', 'like', '%' . $request->email . '%');
-        }
-        if ($request->filled('tel') && is_numeric($request->tel)) {
-            $query->where('tel', $request->tel); // 完全一致
-        }
-        if ($request->filled('membershipfee_conf') && is_numeric($request->membershipfee_conf)) {
-            $query->where('membershipfee_conf', intval($request->membershipfee_conf));
-        }
+    // 日付・年月フィールド（正確にマッチ）
+    if ($request->filled('birthday')) {
+        $query->whereDate('birthday', $request->birthday);
+    }
+    if ($request->filled('registration_date')) {
+        $query->whereDate('registration_date', $request->registration_date);
+    }
 
+    // 電話番号など完全一致
+    $exactFields = ['guardian_tel', 'emergency_tel1', 'tel'];
+    foreach ($exactFields as $field) {
+        if ($request->filled($field)) {
+            $query->where($field, $request->$field);
+        }
+    }
         // 🔹 ページネーションを適用（1ページ10件）
-        $members = $query->paginate(10);
+        $members = $query->simplePaginate(10);
 
         return response()->json($members);
     }
