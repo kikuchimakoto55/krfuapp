@@ -104,4 +104,5 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/members/{id}', [MemberController::class, 'show']);
     Route::put('/members/{id}', [MemberController::class, 'update']);
     Route::post('/change-password', [PasswordController::class, 'change']);
+    Route::delete('/members/{id}', [MemberController::class, 'destroy']);
 });
