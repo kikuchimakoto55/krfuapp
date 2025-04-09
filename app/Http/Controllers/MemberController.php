@@ -7,9 +7,38 @@ use App\Models\Member;
 use App\Http\Requests\StoreMemberRequest;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\UpdateMemberRequest;
+use Illuminate\Support\Facades\DB;
 
 class MemberController extends Controller
 {
+     //家族登録モーダル
+public function search(Request $request)
+{
+    $keyword = $request->input('keyword');
+
+    if (!$keyword) {
+        return response()->json(['data' => []]);
+    }
+
+    // 前後空白削除 & 全角→半角カタカナ→ひらがなへ変換（あれば）
+    $normalizedKeyword = mb_convert_kana($keyword, 'c');
+
+    $members = \DB::table('t_members')
+        ->where(function ($query) use ($keyword) {
+            $query->whereRaw("CONCAT(username_sei, username_mei) LIKE ?", ["%{$keyword}%"])
+                  ->orWhereRaw("CONCAT(username_kana_s, username_kana_m) LIKE ?", ["%{$keyword}%"]);
+        })
+        ->select(
+            'member_id', 'username_sei', 'username_mei',
+            'username_kana_s', 'username_kana_m'
+        )
+        ->orderBy('username_sei')
+        ->limit(50) // 結果数は適宜制限（任意）
+        ->get();
+
+    return response()->json(['data' => $members]);
+}
+    
     public function index(Request $request)
 {
 	// 受信した検索条件を確認（デバッグ用）
@@ -61,9 +90,9 @@ class MemberController extends Controller
 
         // 🔹 ページネーションを適用（1ページ10件）
         $members = $query->simplePaginate(10);
-
         return response()->json($members);
     }
+    
     //会員登録処理（バリデーション適用）
     public function store(StoreMemberRequest $request)
 {

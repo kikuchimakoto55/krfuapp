@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\Member; // t_members 用のモデル
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\PasswordController;
+use App\Http\Controllers\FamilyController;
 
 
 // Sanctum の CSRF Cookie を取得
@@ -97,6 +98,8 @@ Route::middleware(['auth:sanctum'])->get('/members', [MemberController::class, '
 // 🔓 会員登録はログインなしでもOKにする
 Route::post('/members', [MemberController::class, 'store']);
 
+//家族登録モーダルルーティン
+Route::get('/members/search', [MemberController::class, 'search']);
 
 // POST /api/change-password に対応する処理（現パスワードチェック、更新）を追加
 //マイページルーティング
@@ -106,3 +109,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/change-password', [PasswordController::class, 'change']);
     Route::delete('/members/{id}', [MemberController::class, 'destroy']);
 });
+
+//家族管理ルーティング
+Route::middleware('auth:sanctum')->post('/families', [FamilyController::class, 'store']);
+
