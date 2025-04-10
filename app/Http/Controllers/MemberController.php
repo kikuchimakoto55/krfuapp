@@ -150,8 +150,14 @@ public function show($id)
     if (!$member) {
         return response()->json(['message' => '会員が見つかりません'], 404);
     }
+    // 家族情報を取得（片方向でOKな場合）
+    $families = \DB::table('t_families')
+        ->join('t_members', 't_members.member_id', '=', 't_families.family_id')
+        ->where('t_families.member_id', $id)
+        ->select('t_members.member_id', 't_members.username_sei', 't_members.username_mei', 't_families.relationship')
+        ->get();
 
-    return response()->json(['member' => $member]);
+    return response()->json(['member' => $member,'families' => $families]);
 }
 
 public function destroy($id)
