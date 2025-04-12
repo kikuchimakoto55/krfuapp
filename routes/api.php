@@ -113,3 +113,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
 //家族管理ルーティング
 Route::middleware('auth:sanctum')->post('/families', [FamilyController::class, 'store']);
 
+//家族編集ルーティング
+Route::middleware('auth:sanctum')->put('/families/{id}', [FamilyController::class, 'update']);
+//家族解除ルーティング
+Route::middleware('auth:sanctum')->delete('/families/{id}', [FamilyController::class, 'destroy']);
+// 家族検索ルーティング
+Route::middleware('auth:sanctum')->get('/families/search', [FamilyController::class, 'search']);
+

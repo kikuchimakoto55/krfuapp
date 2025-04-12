@@ -154,7 +154,7 @@ public function show($id)
     $families = \DB::table('t_families')
         ->join('t_members', 't_members.member_id', '=', 't_families.family_id')
         ->where('t_families.member_id', $id)
-        ->select('t_members.member_id', 't_members.username_sei', 't_members.username_mei', 't_families.relationship')
+        ->select('t_families.id','t_members.member_id', 't_members.username_sei', 't_members.username_mei', 't_families.relationship')
         ->get();
 
     return response()->json(['member' => $member,'families' => $families]);
