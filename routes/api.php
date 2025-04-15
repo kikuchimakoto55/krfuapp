@@ -8,6 +8,7 @@ use App\Models\Member; // t_members 用のモデル
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\FamilyController;
+use App\Http\Controllers\TournamentController;
 
 
 // Sanctum の CSRF Cookie を取得
@@ -119,4 +120,6 @@ Route::middleware('auth:sanctum')->put('/families/{id}', [FamilyController::clas
 Route::middleware('auth:sanctum')->delete('/families/{id}', [FamilyController::class, 'destroy']);
 // 家族検索ルーティング
 Route::middleware('auth:sanctum')->get('/families/search', [FamilyController::class, 'search']);
+// 大会登録ルーティング
+Route::post('/tournaments', [TournamentController::class, 'store']);
 
