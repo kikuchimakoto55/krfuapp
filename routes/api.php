@@ -122,4 +122,10 @@ Route::middleware('auth:sanctum')->delete('/families/{id}', [FamilyController::c
 Route::middleware('auth:sanctum')->get('/families/search', [FamilyController::class, 'search']);
 // 大会登録ルーティング
 Route::post('/tournaments', [TournamentController::class, 'store']);
+//大会一覧ルーティング
+Route::get('/tournaments', [TournamentController::class, 'index']);
+
+//大会編集ルーティング
+Route::get('/tournaments/{id}', [TournamentController::class, 'show']);
+Route::put('/tournaments/{id}', [TournamentController::class, 'update']);
 
