@@ -174,4 +174,17 @@ public function destroy($id)
     return response()->json(['message' => '削除完了']);
 }
 
+// 会員登録完了画面でメールアドレス取得
+public function public($id)
+{
+    $member = TMember::find($id);
+    if (!$member) {
+        return response()->json(['message' => '会員が見つかりません'], 404);
+    }
+
+    return response()->json([
+        'email' => $member->email
+    ]);
+}
+
 }

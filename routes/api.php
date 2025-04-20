@@ -107,8 +107,14 @@ Route::get('/members/search', [MemberController::class, 'search']);
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/members/{id}', [MemberController::class, 'show']);
     Route::put('/members/{id}', [MemberController::class, 'update']);
-    Route::post('/change-password', [PasswordController::class, 'change']);
     Route::delete('/members/{id}', [MemberController::class, 'destroy']);
+    Route::post('/change-password', [PasswordController::class, 'change']);
+    Route::get('/teams', [App\Http\Controllers\TeamController::class, 'index']);
+    Route::post('/teams', [App\Http\Controllers\TeamController::class, 'store']);
+    Route::get('/teams/{id}', [App\Http\Controllers\TeamController::class, 'show']);
+    Route::put('/teams/{id}', [App\Http\Controllers\TeamController::class, 'update']);
+    Route::delete('/teams/{id}', [App\Http\Controllers\TeamController::class, 'destroy']);
+
 });
 
 //家族管理ルーティング
@@ -129,3 +135,5 @@ Route::get('/tournaments', [TournamentController::class, 'index']);
 Route::get('/tournaments/{id}', [TournamentController::class, 'show']);
 Route::put('/tournaments/{id}', [TournamentController::class, 'update']);
 
+//会員登録完了画面情報出力ルーティング
+Route::get('/members/{id}/public', [MemberController::class, 'public']);

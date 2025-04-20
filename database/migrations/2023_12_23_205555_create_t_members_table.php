@@ -22,8 +22,8 @@ return new class extends Migration
             $table->string("username_en_m",20)->comment('氏名 (名)英')->nullable(false);
             $table->smallInteger('sex')->comment('性別')->nullable(false);
             $table->date("birthday")->comment('生年月日')->nullable(false);
-            $table->smallInteger('height')->comment('身長（cm）')->nullable(false);
-            $table->smallInteger('weight')->comment('体重（kg）')->nullable(false);
+            $table->smallInteger('height')->comment('身長（cm）')->nullable(true);
+            $table->smallInteger('weight')->comment('体重（kg）')->nullable(true);
             $table->smallInteger('blood_type')->comment('血液型')->nullable(true);
             $table->string('zip',7)->comment('郵便番号')->nullable(false);
             $table->string('address1',10)->comment('都道府県')->nullable(false);

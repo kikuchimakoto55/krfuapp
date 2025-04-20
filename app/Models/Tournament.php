@@ -29,6 +29,10 @@ class Tournament extends Model
         'del_flg',
         'divisions',
     ];
+    // divisions カラムの JSON 自動変換
+    protected $casts = [
+        'divisions' => 'array', 
+    ];
 
     public $timestamps = false; // Laravelの created_at, updated_at を使わない
 }
