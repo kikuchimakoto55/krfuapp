@@ -105,16 +105,17 @@ Route::get('/members/search', [MemberController::class, 'search']);
 // POST /api/change-password に対応する処理（現パスワードチェック、更新）を追加
 //マイページルーティング
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/members/{id}', [MemberController::class, 'show']);
-    Route::put('/members/{id}', [MemberController::class, 'update']);
-    Route::delete('/members/{id}', [MemberController::class, 'destroy']);
-    Route::post('/change-password', [PasswordController::class, 'change']);
-    Route::get('/teams', [App\Http\Controllers\TeamController::class, 'index']);
-    Route::post('/teams', [App\Http\Controllers\TeamController::class, 'store']);
-    Route::get('/teams/{id}', [App\Http\Controllers\TeamController::class, 'show']);
-    Route::put('/teams/{id}', [App\Http\Controllers\TeamController::class, 'update']);
-    Route::delete('/teams/{id}', [App\Http\Controllers\TeamController::class, 'destroy']);
-
+    Route::get('/members/{id}', [MemberController::class, 'show']);//会員詳細
+    Route::put('/members/{id}', [MemberController::class, 'update']);//会員詳細更新
+    Route::delete('/members/{id}', [MemberController::class, 'destroy']);//会員削除
+    Route::post('/change-password', [PasswordController::class, 'change']);//パスワード更新
+    Route::get('/teams', [App\Http\Controllers\TeamController::class, 'index']);//チーム一覧
+    Route::post('/teams', [App\Http\Controllers\TeamController::class, 'store']);//チーム登録
+    Route::get('/teams/{id}', [App\Http\Controllers\TeamController::class, 'show']);//チーム詳細
+    Route::put('/teams/{id}', [App\Http\Controllers\TeamController::class, 'update']);//チーム更新
+    Route::delete('/teams/{id}', [App\Http\Controllers\TeamController::class, 'destroy']);//チーム削除
+    Route::post('/tournament-results', [TournamentResultController::class, 'store']);//大会結果登録
+    Route::get('/tournament-results', [TournamentResultController::class, 'index']);//大会結果詳細
 });
 
 //家族管理ルーティング
@@ -137,3 +138,4 @@ Route::put('/tournaments/{id}', [TournamentController::class, 'update']);
 
 //会員登録完了画面情報出力ルーティング
 Route::get('/members/{id}/public', [MemberController::class, 'public']);
+
