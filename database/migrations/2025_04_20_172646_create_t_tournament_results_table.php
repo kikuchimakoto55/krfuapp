@@ -14,7 +14,7 @@ class CreateTTournamentResultsTable extends Migration
             $table->integer('division_order'); // ディビジョン並び順
             $table->string('division_name'); // ディビジョン名
             $table->string('rank_label'); // 順位名（例：優勝）
-            $table->unsignedBigInteger('team_id'); // チームID（FK）
+            $table->unsignedBigInteger('team_id')->nullable(); // チームID（FK）
             $table->string('document_path')->nullable(); // 対戦票のパス
             $table->text('report')->nullable(); // 結果レポート
 

@@ -9,7 +9,9 @@ use App\Http\Controllers\MemberController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\FamilyController;
 use App\Http\Controllers\TournamentController;
-
+use App\Http\Controllers\TournamentResultController;
+use App\Http\Controllers\GameController;
+use App\Http\Controllers\VenueController;
 
 // Sanctum の CSRF Cookie を取得
 Route::get('/sanctum/csrf-cookie', function (Request $request) {
@@ -116,6 +118,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/teams/{id}', [App\Http\Controllers\TeamController::class, 'destroy']);//チーム削除
     Route::post('/tournament-results', [TournamentResultController::class, 'store']);//大会結果登録
     Route::get('/tournament-results', [TournamentResultController::class, 'index']);//大会結果詳細
+    Route::get('/games', [GameController::class, 'index']); // 試合一覧
+    Route::post('/games', [GameController::class, 'store']); // 試合登録
+    Route::get('/games/{id}', [GameController::class, 'show']); // 試合詳細
+    Route::put('/games/{id}', [GameController::class, 'update']); // 試合更新
+    Route::delete('/games/{id}', [GameController::class, 'destroy']); // 試合削除
+    Route::get('/venues', [VenueController::class, 'index']);// 会場一覧
+    Route::post('/venues', [VenueController::class, 'store']);// 会場管理
+    Route::get('/venues/{id}', [VenueController::class, 'show']);//会場編集
 });
 
 //家族管理ルーティング
@@ -138,4 +148,8 @@ Route::put('/tournaments/{id}', [TournamentController::class, 'update']);
 
 //会員登録完了画面情報出力ルーティング
 Route::get('/members/{id}/public', [MemberController::class, 'public']);
+//大会結果登録完了画面ルーティング
+Route::middleware('auth:sanctum')->get('/tournament-results/{tournament_id}', [TournamentResultController::class, 'showByTournament']);
+//会場編集更新ルーティング
+Route::middleware(['auth:sanctum'])->put('/venues/{id}', [VenueController::class, 'update']);
 
