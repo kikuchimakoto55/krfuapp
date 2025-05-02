@@ -55,6 +55,7 @@ class TournamentController extends Controller
     public function show($id)
     {
     $tournament = Tournament::findOrFail($id);
+    $tournament->divisions = $tournament->divisions ? json_decode($tournament->divisions, true) : [];
     return response()->json($tournament);
     }
 
@@ -73,12 +74,27 @@ class TournamentController extends Controller
 
     if (!empty($validated['divisions']) && is_array($validated['divisions'])) {
         $validated['divisions'] = json_encode($validated['divisions'], JSON_UNESCAPED_UNICODE);
+    } else {
+        $validated['divisions'] = null;
     }
 
     $tournament = Tournament::findOrFail($id);
     $tournament->update(array_merge($validated, ['update_date' => now()]));
+    
 
     return response()->json(['message' => '更新完了']);
+    }
+
+    public function list()
+    {
+    $tournaments = \DB::table('t_tournaments')
+        ->select('tournament_id', 'name', 'year', 'categoly')
+        ->where('del_flg', 0) // 削除フラグが立ってない大会だけ
+        ->orderBy('year', 'desc')
+        ->orderBy('name')
+        ->get();
+
+    return response()->json($tournaments);
     }
 
 }

@@ -42,6 +42,62 @@ class GameController extends Controller
     return response()->json($games);
 }
 
+// 試合検索
+public function search(Request $request)
+{
+    $query = DB::table('t_games')
+        ->join('t_tournaments', 't_games.tournament_id', '=', 't_tournaments.tournament_id')
+        ->leftJoin('t_teams as team1', 't_games.team1_id', '=', 'team1.team_id')
+        ->leftJoin('t_teams as team2', 't_games.team2_id', '=', 'team2.team_id')
+        ->leftJoin('t_venues', 't_games.venue_id', '=', 't_venues.venue_id') 
+        ->select(
+            't_games.game_id',
+            't_tournaments.name as tournament_name', // 大会名
+            't_tournaments.categoly as tournament_category',    // カテゴリ名
+            't_games.division_name',                  // ディビジョン名
+            't_games.round_label',                    // 回戦名（正式に使う方）
+            't_games.game_date',                      // 開催日時（正式に使う方）
+            't_venues.venue_name as venue_name',      // 会場
+            'team1.team_name as team_name_a',          // チームA
+            'team2.team_name as team_name_b',          // チームB
+            't_games.approval_flg',                    // 承認フラグ
+            // スコア（チームA 前半・後半）
+            't_games.team1_score1st_point',
+            't_games.team1_score2nd_point',
+
+            // スコア（チームB 前半・後半）
+            't_games.team2_score1st_point',
+            't_games.team2_score2nd_point'
+        );
+
+    // 条件追加
+    if ($request->filled('categoly')) {
+        $query->where('t_tournaments.categoly', $request->input('categoly'));
+    }
+    if ($request->filled('year')) {
+        $query->where('t_tournaments.year', $request->input('year'));
+    }
+    if ($request->filled('tournament_id')) {
+        $query->where('t_games.tournament_id', $request->input('tournament_id'));
+    }
+    if ($request->filled('division_name')) {
+        $query->where('t_games.division_name', 'like', '%' . $request->input('division_name') . '%');
+    }
+    if ($request->filled('match_datetime')) {
+        $query->whereDate('t_games.game_date', $request->input('match_datetime'));
+    }
+    if ($request->filled('team_name')) {
+        $query->where(function ($q) use ($request) {
+            $q->where('team1.team_name', 'like', '%' . $request->team_name . '%')
+              ->orWhere('team2.team_name', 'like', '%' . $request->team_name . '%');
+        });
+    }
+
+    $results = $query->orderBy('t_games.game_date', 'desc')->get();
+    $games = $query->paginate(20);
+    return response()->json($games);
+    }
+
     // 試合登録
     public function store(Request $request)
     {
@@ -123,4 +179,5 @@ class GameController extends Controller
 
         return response()->json(['message' => '試合情報を削除しました']);
     }
+
 }
