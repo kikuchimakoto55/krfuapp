@@ -130,7 +130,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/venues', [VenueController::class, 'store']);// 会場管理
     Route::get('/venues/{id}', [VenueController::class, 'show']);//会場編集
     Route::get('/tournaments/list', [TournamentController::class, 'list']);//試合登録前選択
-    
+    Route::get('/tournaments/{id}/check-division', [TournamentController::class, 'checkDivisionFlg']);//試合登録ディビジョン表示高速化
+    Route::get('/tournaments/{id}/divisions', [TournamentController::class, 'divisions']);
 });
 
 //家族管理ルーティング

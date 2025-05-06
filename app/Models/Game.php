@@ -9,7 +9,30 @@ class Game extends Model
 {
     use HasFactory;
 
-    protected $table = 't_games'; // ★テーブル名をt_gamesに指定
-    protected $primaryKey = 'game_id'; // ★主キーがgame_idの場合
-    protected $guarded = ['game_id']; // ★game_id以外は一括代入OK
+    protected $table = 't_games'; // テーブル名を明示
+    protected $primaryKey = 'game_id'; // 主キー
+    protected $guarded = ['game_id']; // 一括代入から除外
+
+    // 🔽 以下、クラスの中にリレーションを書く
+
+    public function team1()
+    {
+        return $this->belongsTo(Team::class, 'team1_id', 'team_id');
+    }
+
+    public function team2()
+    {
+        return $this->belongsTo(Team::class, 'team2_id', 'team_id');
+    }
+
+    public function venue()
+    {
+    return $this->belongsTo(Venue::class, 'venue_id');
+    }
+
+    public function score()
+    {
+        return $this->hasOne(Score::class, 'game_id', 'game_id');
+    }
+
 }

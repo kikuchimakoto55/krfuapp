@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Tournament;
+use Illuminate\Support\Facades\DB;
 
 class TournamentController extends Controller
 {
@@ -29,6 +30,8 @@ class TournamentController extends Controller
         // ✅ divisions を JSON 文字列にする
             if (!empty($validated['divisions']) && is_array($validated['divisions'])) {
             $validated['divisions'] = json_encode($validated['divisions'], JSON_UNESCAPED_UNICODE);
+        }else {
+            $validated['divisions'] = null;
         }
 
         // データ保存
@@ -69,14 +72,9 @@ class TournamentController extends Controller
         'event_period_end' => 'nullable|date',
         'publishing' => 'required|boolean',
         'divisionflg' => 'required|boolean',
-        'divisions' => 'nullable|json',
+        'divisions' => 'nullable|string',
+        
     ]);
-
-    if (!empty($validated['divisions']) && is_array($validated['divisions'])) {
-        $validated['divisions'] = json_encode($validated['divisions'], JSON_UNESCAPED_UNICODE);
-    } else {
-        $validated['divisions'] = null;
-    }
 
     $tournament = Tournament::findOrFail($id);
     $tournament->update(array_merge($validated, ['update_date' => now()]));
@@ -95,6 +93,36 @@ class TournamentController extends Controller
         ->get();
 
     return response()->json($tournaments);
+    }
+
+    // 指定IDの divisionflg だけ返すAPI（軽量）
+    public function checkDivisionFlg($id)
+    {
+        $tournament = \DB::table('t_tournaments')
+            ->select('divisionflg')
+            ->where('tournament_id', $id)
+            ->where('del_flg', 0)
+            ->first();
+
+        if (!$tournament) {
+            return response()->json(['message' => 'Not found'], 404);
+        }
+
+        return response()->json($tournament);
+
+    }
+    public function divisions($id)
+    {
+        $divisions = \DB::table('t_games')
+            ->select('division_order', 'division_name')
+            ->where('tournament_id', $id)
+            ->where('del_flg', 0)
+            ->whereNotNull('division_name')
+            ->groupBy('division_order', 'division_name')
+            ->orderBy('division_name')
+            ->get();
+
+    return response()->json($divisions);
     }
 
 }

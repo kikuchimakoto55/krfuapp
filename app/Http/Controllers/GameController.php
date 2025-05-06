@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Game;
 use Illuminate\Support\Facades\DB;
+use App\Models\Score;
 
 class GameController extends Controller
 {
@@ -27,13 +28,6 @@ class GameController extends Controller
             'team1.team_name as team_name_a',          // チームA
             'team2.team_name as team_name_b',          // チームB
             't_games.approval_flg',                    // 承認フラグ
-            // スコア（チームA 前半・後半）
-            't_games.team1_score1st_point',
-            't_games.team1_score2nd_point',
-
-            // スコア（チームB 前半・後半）
-            't_games.team2_score1st_point',
-            't_games.team2_score2nd_point'
         )
         ->distinct()
         ->orderBy('t_games.game_date', 'asc')
@@ -61,13 +55,7 @@ public function search(Request $request)
             'team1.team_name as team_name_a',          // チームA
             'team2.team_name as team_name_b',          // チームB
             't_games.approval_flg',                    // 承認フラグ
-            // スコア（チームA 前半・後半）
-            't_games.team1_score1st_point',
-            't_games.team1_score2nd_point',
 
-            // スコア（チームB 前半・後半）
-            't_games.team2_score1st_point',
-            't_games.team2_score2nd_point'
         );
 
     // 条件追加
@@ -93,7 +81,7 @@ public function search(Request $request)
         });
     }
 
-    $results = $query->orderBy('t_games.game_date', 'desc')->get();
+    
     $games = $query->paginate(20);
     return response()->json($games);
     }
@@ -105,20 +93,47 @@ public function search(Request $request)
             'tournament_id' => 'required|exists:t_tournaments,tournament_id',
             'division_name' => 'nullable|string',
             'match_round' => 'nullable|string',
-            'match_datetime' => 'required|date',
+            'match_datetime' => 'sometimes|date',
             'venue_id' => 'nullable|integer',
-            'team1_id' => 'required|integer',
-            'team1_alias' => 'nullable|string',
-            'team2_id' => 'required|integer',
-            'team2_alias' => 'nullable|string',
-            'referee_id' => 'nullable|integer',
-            'staff_id' => 'nullable|integer',
-            'doctor_id' => 'nullable|integer',
-            'team1_score1st_point' => 'nullable|integer',
-            'team1_score2nd_point' => 'nullable|integer',
-            'team2_score1st_point' => 'nullable|integer',
-            'team2_score2nd_point' => 'nullable|integer',
-            'approval_flg' => 'nullable|integer',
+            'team1_id' => 'sometimes|integer',
+            'team2_id' => 'sometimes|integer',
+            'referee' => 'nullable|string',
+            'manager' => 'nullable|string',
+            'doctor' => 'nullable|string',
+            'score' => 'nullable|array',
+            
+            // score 内の各フィールドを明示的に
+            'score.op1fh_score' => 'nullable|integer',
+            'score.op1hh_score' => 'nullable|integer',
+            'score.op2fh_score' => 'nullable|integer',
+            'score.op2hh_score' => 'nullable|integer',
+            'score.op1fh_t' => 'nullable|integer',
+            'score.op1fh_g' => 'nullable|integer',
+            'score.op1fh_pg' => 'nullable|integer',
+            'score.op1fh_dg' => 'nullable|integer',
+            'score.op1fh_pkscore' => 'nullable|integer',
+            'score.op1fh_fkscore' => 'nullable|integer',
+            'score.op1hh_t' => 'nullable|integer',
+            'score.op1hh_g' => 'nullable|integer',
+            'score.op1hh_pg' => 'nullable|integer',
+            'score.op1hh_dg' => 'nullable|integer',
+            'score.op1hh_pkscore' => 'nullable|integer',
+            'score.op1hh_fkscore' => 'nullable|integer',
+            'score.op2fh_t' => 'nullable|integer',
+            'score.op2fh_g' => 'nullable|integer',
+            'score.op2fh_pg' => 'nullable|integer',
+            'score.op2fh_dg' => 'nullable|integer',
+            'score.op2fh_pkscore' => 'nullable|integer',
+            'score.op2fh_fkscore' => 'nullable|integer',
+            'score.op2hh_t' => 'nullable|integer',
+            'score.op2hh_g' => 'nullable|integer',
+            'score.op2hh_pg' => 'nullable|integer',
+            'score.op2hh_dg' => 'nullable|integer',
+            'score.op2hh_pkscore' => 'nullable|integer',
+            'score.op2hh_fkscore' => 'nullable|integer',
+            'score.score_book' => 'nullable|string',
+            'score.gamereport' => 'nullable|string',
+            'score.publishing' => 'nullable|integer',
         ]);
 
         $game = new Game();
@@ -130,11 +145,10 @@ public function search(Request $request)
         $game->division_order = 0; // 今は仮0
         $game->round_label = $validated['match_round'];
         $game->game_date = $validated['match_datetime'];
-        $game->team1_score1st_point = $validated['team1_score1st_point'] ?? 0;
-        $game->team1_score2nd_point = $validated['team1_score2nd_point'] ?? 0;
-        $game->team2_score1st_point = $validated['team2_score1st_point'] ?? 0;
-        $game->team2_score2nd_point = $validated['team2_score2nd_point'] ?? 0;
         $game->approval_flg = $validated['approval_flg'] ?? 0;
+        $game->referee = $validated['referee'] ?? $game->referee;
+        $game->manager = $validated['manager'] ?? $game->manager;
+        $game->doctor = $validated['doctor'] ?? $game->doctor;
 
         $game->save();
 
@@ -144,7 +158,7 @@ public function search(Request $request)
     // 試合詳細取得
     public function show($id)
     {
-        return Game::findOrFail($id);
+        return Game::with(['team1', 'team2', 'venue', 'score'])->findOrFail($id);
     }
 
     // 試合更新
@@ -153,20 +167,80 @@ public function search(Request $request)
         $game = Game::findOrFail($id);
 
         $validated = $request->validate([
-            'division_name' => 'sometimes|string',
+            'division_name' => 'nullable|string',
             'match_round' => 'nullable|string',
             'match_datetime' => 'sometimes|date',
             'venue_id' => 'nullable|integer',
             'team1_id' => 'sometimes|integer',
-            'team1_alias' => 'nullable|string',
             'team2_id' => 'sometimes|integer',
-            'team2_alias' => 'nullable|string',
-            'referee_id' => 'nullable|integer',
-            'staff_id' => 'nullable|integer',
-            'doctor_id' => 'nullable|integer',
+            'referee' => 'nullable|string',
+            'manager' => 'nullable|string',
+            'doctor' => 'nullable|string',
+            'score' => 'nullable|array',
+            
+            // score 内の各フィールドを明示的に
+            'score.op1fh_score' => 'nullable|integer',
+            'score.op1hh_score' => 'nullable|integer',
+            'score.op2fh_score' => 'nullable|integer',
+            'score.op2hh_score' => 'nullable|integer',
+            'score.op1fh_t' => 'nullable|integer',
+            'score.op1fh_g' => 'nullable|integer',
+            'score.op1fh_pg' => 'nullable|integer',
+            'score.op1fh_dg' => 'nullable|integer',
+            'score.op1fh_pkscore' => 'nullable|integer',
+            'score.op1fh_fkscore' => 'nullable|integer',
+            'score.op1hh_t' => 'nullable|integer',
+            'score.op1hh_g' => 'nullable|integer',
+            'score.op1hh_pg' => 'nullable|integer',
+            'score.op1hh_dg' => 'nullable|integer',
+            'score.op1hh_pkscore' => 'nullable|integer',
+            'score.op1hh_fkscore' => 'nullable|integer',
+            'score.op2fh_t' => 'nullable|integer',
+            'score.op2fh_g' => 'nullable|integer',
+            'score.op2fh_pg' => 'nullable|integer',
+            'score.op2fh_dg' => 'nullable|integer',
+            'score.op2fh_pkscore' => 'nullable|integer',
+            'score.op2fh_fkscore' => 'nullable|integer',
+            'score.op2hh_t' => 'nullable|integer',
+            'score.op2hh_g' => 'nullable|integer',
+            'score.op2hh_pg' => 'nullable|integer',
+            'score.op2hh_dg' => 'nullable|integer',
+            'score.op2hh_pkscore' => 'nullable|integer',
+            'score.op2hh_fkscore' => 'nullable|integer',
+            'score.score_book' => 'nullable|string',
+            'score.gamereport' => 'nullable|string',
+            'score.publishing' => 'nullable|integer',
         ]);
 
-        $game->update($validated);
+        // 基本情報（readonlyの項目は除く）を更新
+        $game->division_name = $request->input('division_name');
+        $game->save();
+
+        // スコア・反則更新
+if (isset($validated['score'])) {
+    $scoreData = collect($validated['score'])->only([
+        // チーム1前半・後半
+        'op1fh_t', 'op1fh_g', 'op1fh_pg', 'op1fh_dg',
+        'op1fh_score', 'op1fh_pkscore', 'op1fh_fkscore',
+        'op1hh_t', 'op1hh_g', 'op1hh_pg', 'op1hh_dg',
+        'op1hh_score', 'op1hh_pkscore', 'op1hh_fkscore',
+
+        // チーム2前半・後半
+        'op2fh_t', 'op2fh_g', 'op2fh_pg', 'op2fh_dg',
+        'op2fh_score', 'op2fh_pkscore', 'op2fh_fkscore',
+        'op2hh_t', 'op2hh_g', 'op2hh_pg', 'op2hh_dg',
+        'op2hh_score', 'op2hh_pkscore', 'op2hh_fkscore',
+
+        // その他（オプション）
+        'score_book', 'gamereport', 'publishing'
+    ])->toArray();
+
+    Score::updateOrCreate(
+        ['game_id' => $game->game_id],
+        $scoreData
+    );
+}
+
 
         return response()->json(['message' => '試合情報を更新しました', 'game' => $game]);
     }
