@@ -78,7 +78,6 @@ class TournamentController extends Controller
 
     $tournament = Tournament::findOrFail($id);
     $tournament->update(array_merge($validated, ['update_date' => now()]));
-    
 
     return response()->json(['message' => '更新完了']);
     }

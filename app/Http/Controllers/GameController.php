@@ -17,6 +17,7 @@ class GameController extends Controller
         ->leftJoin('t_teams as team2', 't_games.team2_id', '=', 'team2.team_id')
         ->leftJoin('t_tournaments', 't_games.tournament_id', '=', 't_tournaments.tournament_id') 
         ->leftJoin('t_venues', 't_games.venue_id', '=', 't_venues.venue_id')
+        ->leftJoin('t_scores', 't_games.game_id', '=', 't_scores.game_id')
         ->select(
             't_games.game_id',
             't_tournaments.name as tournament_name', // 大会名
@@ -27,7 +28,11 @@ class GameController extends Controller
             't_venues.venue_name as venue_name',      // 会場
             'team1.team_name as team_name_a',          // チームA
             'team2.team_name as team_name_b',          // チームB
-            't_games.approval_flg',                    // 承認フラグ
+            't_games.approval_flg',                 // 承認フラグ
+            't_scores.op1fh_score as team1_score1st_point',
+            't_scores.op1hh_score as team1_score2nd_point',
+            't_scores.op2fh_score as team2_score1st_point',
+            't_scores.op2hh_score as team2_score2nd_point'
         )
         ->distinct()
         ->orderBy('t_games.game_date', 'asc')
@@ -43,7 +48,8 @@ public function search(Request $request)
         ->join('t_tournaments', 't_games.tournament_id', '=', 't_tournaments.tournament_id')
         ->leftJoin('t_teams as team1', 't_games.team1_id', '=', 'team1.team_id')
         ->leftJoin('t_teams as team2', 't_games.team2_id', '=', 'team2.team_id')
-        ->leftJoin('t_venues', 't_games.venue_id', '=', 't_venues.venue_id') 
+        ->leftJoin('t_venues', 't_games.venue_id', '=', 't_venues.venue_id')
+        ->leftJoin('t_scores', 't_games.game_id', '=', 't_scores.game_id')
         ->select(
             't_games.game_id',
             't_tournaments.name as tournament_name', // 大会名
@@ -55,6 +61,10 @@ public function search(Request $request)
             'team1.team_name as team_name_a',          // チームA
             'team2.team_name as team_name_b',          // チームB
             't_games.approval_flg',                    // 承認フラグ
+            't_scores.op1fh_score as team1_score1st_point',
+            't_scores.op1hh_score as team1_score2nd_point',
+            't_scores.op2fh_score as team2_score1st_point',
+            't_scores.op2hh_score as team2_score2nd_point'
 
         );
 
@@ -101,6 +111,7 @@ public function search(Request $request)
             'manager' => 'nullable|string',
             'doctor' => 'nullable|string',
             'score' => 'nullable|array',
+            'division_order' => 'nullable|integer',
             
             // score 内の各フィールドを明示的に
             'score.op1fh_score' => 'nullable|integer',
@@ -146,9 +157,10 @@ public function search(Request $request)
         $game->round_label = $validated['match_round'];
         $game->game_date = $validated['match_datetime'];
         $game->approval_flg = $validated['approval_flg'] ?? 0;
-        $game->referee = $validated['referee'] ?? $game->referee;
-        $game->manager = $validated['manager'] ?? $game->manager;
-        $game->doctor = $validated['doctor'] ?? $game->doctor;
+        $game->referee = $validated['referee'] ?? null;
+        $game->manager = $validated['manager'] ?? null;
+        $game->doctor = $validated['doctor'] ?? null;
+        $game->division_order = $validated['division_order'] ?? $game->division_order;
 
         $game->save();
 
@@ -164,6 +176,10 @@ public function search(Request $request)
     // 試合更新
     public function update(Request $request, $id)
     {
+        \Log::debug('GameController@update called', [
+            'id' => $id,
+            'input' => $request->all(),
+        ]);
         $game = Game::findOrFail($id);
 
         $validated = $request->validate([
@@ -213,7 +229,16 @@ public function search(Request $request)
         ]);
 
         // 基本情報（readonlyの項目は除く）を更新
-        $game->division_name = $request->input('division_name');
+
+        if (array_key_exists('venue_id', $validated)) $game->venue_id = $validated['venue_id'];
+        if (array_key_exists('team1_id', $validated)) $game->team1_id = $validated['team1_id'];
+        if (array_key_exists('team2_id', $validated)) $game->team2_id = $validated['team2_id'];
+        if (array_key_exists('division_name', $validated)) $game->division_name = $validated['division_name'];
+        if (array_key_exists('match_round', $validated)) $game->round_label = $validated['match_round'];
+        if (array_key_exists('match_datetime', $validated)) $game->game_date = $validated['match_datetime'];
+        if (array_key_exists('referee', $validated)) $game->referee = $validated['referee'];
+        if (array_key_exists('manager', $validated)) $game->manager = $validated['manager'];
+        if (array_key_exists('doctor', $validated)) $game->doctor = $validated['doctor'];
         $game->save();
 
         // スコア・反則更新

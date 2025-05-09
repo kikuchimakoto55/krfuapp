@@ -12,6 +12,7 @@ class Game extends Model
     protected $table = 't_games'; // テーブル名を明示
     protected $primaryKey = 'game_id'; // 主キー
     protected $guarded = ['game_id']; // 一括代入から除外
+    protected $dates = ['game_date'];
 
     // 🔽 以下、クラスの中にリレーションを書く
 
@@ -34,5 +35,7 @@ class Game extends Model
     {
         return $this->hasOne(Score::class, 'game_id', 'game_id');
     }
+
+    
 
 }
