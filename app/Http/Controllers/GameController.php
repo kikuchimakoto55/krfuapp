@@ -20,6 +20,7 @@ class GameController extends Controller
         ->leftJoin('t_scores', 't_games.game_id', '=', 't_scores.game_id')
         ->select(
             't_games.game_id',
+            't_games.division_order',
             't_tournaments.name as tournament_name', // 大会名
             't_tournaments.categoly as tournament_category',    // カテゴリ名
             't_games.division_name',                  // ディビジョン名
@@ -52,6 +53,7 @@ public function search(Request $request)
         ->leftJoin('t_scores', 't_games.game_id', '=', 't_scores.game_id')
         ->select(
             't_games.game_id',
+            't_games.division_order',
             't_tournaments.name as tournament_name', // 大会名
             't_tournaments.categoly as tournament_category',    // カテゴリ名
             't_games.division_name',                  // ディビジョン名
@@ -102,6 +104,7 @@ public function search(Request $request)
         $validated = $request->validate([
             'tournament_id' => 'required|exists:t_tournaments,tournament_id',
             'division_name' => 'nullable|string',
+            'division_order' => 'nullable|integer',
             'match_round' => 'nullable|string',
             'match_datetime' => 'sometimes|date',
             'venue_id' => 'nullable|integer',
@@ -111,7 +114,6 @@ public function search(Request $request)
             'manager' => 'nullable|string',
             'doctor' => 'nullable|string',
             'score' => 'nullable|array',
-            'division_order' => 'nullable|integer',
             
             // score 内の各フィールドを明示的に
             'score.op1fh_score' => 'nullable|integer',
@@ -233,7 +235,6 @@ public function search(Request $request)
         if (array_key_exists('venue_id', $validated)) $game->venue_id = $validated['venue_id'];
         if (array_key_exists('team1_id', $validated)) $game->team1_id = $validated['team1_id'];
         if (array_key_exists('team2_id', $validated)) $game->team2_id = $validated['team2_id'];
-        if (array_key_exists('division_name', $validated)) $game->division_name = $validated['division_name'];
         if (array_key_exists('match_round', $validated)) $game->round_label = $validated['match_round'];
         if (array_key_exists('match_datetime', $validated)) $game->game_date = $validated['match_datetime'];
         if (array_key_exists('referee', $validated)) $game->referee = $validated['referee'];
