@@ -172,7 +172,14 @@ public function search(Request $request)
     // 試合詳細取得
     public function show($id)
     {
-        return Game::with(['team1', 'team2', 'venue', 'score'])->findOrFail($id);
+    $game = Game::with(['team1', 'team2', 'venue', 'score'])->findOrFail($id);
+
+    if ($game->score) {
+        // NULLだった場合は空文字に変換（フロントの表示防止）
+        $game->score->score_book = $game->score->score_book ?? '';
+    }
+
+    return $game;
     }
 
     // 試合更新
@@ -195,6 +202,8 @@ public function search(Request $request)
             'manager' => 'nullable|string',
             'doctor' => 'nullable|string',
             'score' => 'nullable|array',
+            'game_report' => 'nullable|string',
+            'publishing' => 'nullable|integer',
             
             // score 内の各フィールドを明示的に
             'score.op1fh_score' => 'nullable|integer',
@@ -259,12 +268,31 @@ if (isset($validated['score'])) {
 
         // その他（オプション）
         'score_book', 'gamereport', 'publishing'
+        
     ])->toArray();
+    $scoreData['gamereport'] = $validated['game_report'] ?? null;
+    $scoreData['publishing'] = $validated['publishing'] ?? 1;
 
+    // ファイルがある場合はパスを追加
+    if ($request->hasFile('scorebook')) {
+    $paths = [];
+
+    foreach ($request->file('scorebook') as $file) {
+        // game_id ごとのサブディレクトリに保存
+        $paths[] = $file->store("scorebooks/{$game->game_id}", 'public');
+    }
+
+    // カンマ区切りで保存（DBのscore_bookカラム）
+    $scoreData['score_book'] = implode(',', $paths);
+    }
+
+    // 保存
     Score::updateOrCreate(
         ['game_id' => $game->game_id],
         $scoreData
     );
+
+
 }
 
 
