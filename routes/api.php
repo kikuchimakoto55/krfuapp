@@ -129,9 +129,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/venues', [VenueController::class, 'index']);// 会場一覧
     Route::post('/venues', [VenueController::class, 'store']);// 会場管理
     Route::get('/venues/{id}', [VenueController::class, 'show']);//会場編集
+    Route::get('/tournaments/search', [TournamentController::class, 'search']);
     Route::get('/tournaments/list', [TournamentController::class, 'list']);//試合登録前選択
     Route::get('/tournaments/{id}/check-division', [TournamentController::class, 'checkDivisionFlg']);//試合登録ディビジョン表示高速化
     Route::get('/tournaments/{id}/divisions', [TournamentController::class, 'divisions']);
+    
 });
 
 //家族管理ルーティング
@@ -160,3 +162,5 @@ Route::middleware('auth:sanctum')->get('/tournament-results/{tournament_id}', [T
 Route::middleware(['auth:sanctum'])->put('/venues/{id}', [VenueController::class, 'update']);
 //試合検索ルーティング
 Route::middleware(['auth:sanctum'])->get('/games/search', [GameController::class, 'search']);
+
+

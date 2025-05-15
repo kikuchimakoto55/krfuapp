@@ -64,19 +64,31 @@ class TournamentController extends Controller
 
     public function update(Request $request, $id)
     {
-    $validated = $request->validate([
-        'name' => 'required|string|max:100',
-        'categoly' => 'required|integer',
-        'year' => 'required|digits:4',
-        'event_period_start' => 'required|date',
-        'event_period_end' => 'nullable|date',
-        'publishing' => 'required|boolean',
-        'divisionflg' => 'required|boolean',
-        'divisions' => 'nullable|string',
+        $tournament = Tournament::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:100',
+            'categoly' => 'required|integer',
+            'year' => 'required|digits:4',
+            'event_period_start' => 'required|date',
+            'event_period_end' => 'nullable|date',
+            'publishing' => 'required|boolean',
+            'divisionflg' => 'required|boolean',
+            'divisions' => 'nullable|string',
         
     ]);
-
-    $tournament = Tournament::findOrFail($id);
+    //  divisionflg = 0 のとき、divisionsを強制的に空にする
+    if ($validated['divisionflg'] == 0) {
+        //  一度も設定されたことがない新規大会：NULLのまま
+        //  今回、設定解除した場合："[]" に上書き
+    $validated['divisions'] = json_encode([]);
+    } else {
+    // divisions が配列なら json_encode、文字列ならそのまま
+    if (is_array($validated['divisions'])) {
+        $validated['divisions'] = json_encode($validated['divisions']);
+    }
+    }
+    
     $tournament->update(array_merge($validated, ['update_date' => now()]));
 
     return response()->json(['message' => '更新完了']);
@@ -123,5 +135,39 @@ class TournamentController extends Controller
 
     return response()->json($divisions);
     }
+
+
+    public function search(Request $request)
+{
+    $query = Tournament::query();
+
+    if ($request->filled('categoly')) {
+        $query->where('categoly', $request->categoly);
+    }
+
+    if ($request->filled('year')) {
+        $query->where('year', $request->year);
+    }
+
+    if ($request->filled('name')) {
+        $query->where('name', 'like', '%' . $request->name . '%');
+    }
+
+    if ($request->filled('event_period_start')) {
+        $query->whereDate('event_period_start', '>=', $request->event_period_start);
+    }
+
+    if ($request->filled('publishing')) {
+        $query->where('publishing', $request->publishing);
+    }
+
+    if ($request->filled('divisionflg')) {
+        $query->where('divisionflg', $request->divisionflg);
+    }
+
+    return response()->json([
+        'data' => $query->orderBy('year', 'desc')->orderBy('event_period_start', 'desc')->get()
+    ]);
+}
 
 }
