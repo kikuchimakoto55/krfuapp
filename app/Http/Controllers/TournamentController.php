@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Tournament;
+use App\Models\Game;
+use App\Models\Score;
 use Illuminate\Support\Facades\DB;
 
 class TournamentController extends Controller
@@ -27,7 +29,7 @@ class TournamentController extends Controller
             return response()->json(['errors' => $e->errors()], 422);
         }
 
-        // ✅ divisions を JSON 文字列にする
+        //  divisions を JSON 文字列にする
             if (!empty($validated['divisions']) && is_array($validated['divisions'])) {
             $validated['divisions'] = json_encode($validated['divisions'], JSON_UNESCAPED_UNICODE);
         }else {
@@ -50,14 +52,20 @@ class TournamentController extends Controller
     // tournaments テーブルの一覧を取得
     public function index()
     {
-    $tournaments = Tournament::orderBy('event_period_start', 'desc')->get();
+    $tournaments = Tournament::where('del_flg', 0)
+        ->orderBy('event_period_start', 'desc')
+        ->get();
+
     return response()->json($tournaments);
     }
 
     // tournaments編集処理
     public function show($id)
     {
-    $tournament = Tournament::findOrFail($id);
+    $tournament = Tournament::where('tournament_id', $id)
+        ->where('del_flg', 0)
+        ->firstOrFail();
+
     $tournament->divisions = $tournament->divisions ? json_decode($tournament->divisions, true) : [];
     return response()->json($tournament);
     }
@@ -141,6 +149,9 @@ class TournamentController extends Controller
 {
     $query = Tournament::query();
 
+    // ✅ 追加：削除されていないデータに限定
+    $query->where('del_flg', 0);
+
     if ($request->filled('categoly')) {
         $query->where('categoly', $request->categoly);
     }
@@ -168,6 +179,31 @@ class TournamentController extends Controller
     return response()->json([
         'data' => $query->orderBy('year', 'desc')->orderBy('event_period_start', 'desc')->get()
     ]);
-}
+    }
+
+    //大会削除
+    public function destroy($id)
+    {
+    DB::transaction(function () use ($id) {
+        // トーナメント
+        $tournament = Tournament::findOrFail($id);
+        $tournament->update(['del_flg' => 1]);
+
+        // 該当大会のゲーム
+        $games = Game::where('tournament_id', $id)->get();
+
+        foreach ($games as $game) {
+            // スコアの論理削除
+            $updated = Score::where('game_id', $game->game_id)->update(['del_flg' => 1]);
+            \Log::info("スコア del_flg 更新件数：{$updated}（game_id = {$game->game_id}）");
+
+            // ゲームの論理削除
+            $game->update(['del_flg' => 1]);
+        }
+    });
+
+    return response()->json(['message' => '大会および関連データを論理削除しました']);
+    }
+
 
 }

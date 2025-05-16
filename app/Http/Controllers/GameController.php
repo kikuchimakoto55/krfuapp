@@ -13,6 +13,7 @@ class GameController extends Controller
     public function index()
 {
     $games = DB::table('t_games')
+        ->where('t_games.del_flg', 0) // ✅ 論理削除除外
         ->leftJoin('t_teams as team1', 't_games.team1_id', '=', 'team1.team_id')
         ->leftJoin('t_teams as team2', 't_games.team2_id', '=', 'team2.team_id')
         ->leftJoin('t_tournaments', 't_games.tournament_id', '=', 't_tournaments.tournament_id') 
@@ -21,15 +22,15 @@ class GameController extends Controller
         ->select(
             't_games.game_id',
             't_games.division_order',
-            't_tournaments.name as tournament_name', // 大会名
-            't_tournaments.categoly as tournament_category',    // カテゴリ名
-            't_games.division_name',                  // ディビジョン名
-            't_games.round_label',                    // 回戦名（正式に使う方）
-            't_games.game_date',                      // 開催日時（正式に使う方）
-            't_venues.venue_name as venue_name',      // 会場
-            'team1.team_name as team_name_a',          // チームA
-            'team2.team_name as team_name_b',          // チームB
-            't_games.approval_flg',                 // 承認フラグ
+            't_tournaments.name as tournament_name',
+            't_tournaments.categoly as tournament_category',
+            't_games.division_name',
+            't_games.round_label',
+            't_games.game_date',
+            't_venues.venue_name as venue_name',
+            'team1.team_name as team_name_a',
+            'team2.team_name as team_name_b',
+            't_games.approval_flg',
             't_scores.op1fh_score as team1_score1st_point',
             't_scores.op1hh_score as team1_score2nd_point',
             't_scores.op2fh_score as team2_score1st_point',
@@ -46,6 +47,7 @@ class GameController extends Controller
 public function search(Request $request)
 {
     $query = DB::table('t_games')
+        ->where('t_games.del_flg', 0) //  論理削除除外
         ->join('t_tournaments', 't_games.tournament_id', '=', 't_tournaments.tournament_id')
         ->leftJoin('t_teams as team1', 't_games.team1_id', '=', 'team1.team_id')
         ->leftJoin('t_teams as team2', 't_games.team2_id', '=', 'team2.team_id')
@@ -54,21 +56,21 @@ public function search(Request $request)
         ->select(
             't_games.game_id',
             't_games.division_order',
-            't_tournaments.name as tournament_name', // 大会名
-            't_tournaments.categoly as tournament_category',    // カテゴリ名
-            't_games.division_name',                  // ディビジョン名
-            't_games.round_label',                    // 回戦名（正式に使う方）
-            't_games.game_date',                      // 開催日時（正式に使う方）
-            't_venues.venue_name as venue_name',      // 会場
-            'team1.team_name as team_name_a',          // チームA
-            'team2.team_name as team_name_b',          // チームB
-            't_games.approval_flg',                    // 承認フラグ
+            't_tournaments.name as tournament_name',
+            't_tournaments.categoly as tournament_category',
+            't_games.division_name',
+            't_games.round_label',
+            't_games.game_date',
+            't_venues.venue_name as venue_name',
+            'team1.team_name as team_name_a',
+            'team2.team_name as team_name_b',
+            't_games.approval_flg',
             't_scores.op1fh_score as team1_score1st_point',
             't_scores.op1hh_score as team1_score2nd_point',
             't_scores.op2fh_score as team2_score1st_point',
             't_scores.op2hh_score as team2_score2nd_point'
-
         );
+
 
     // 条件追加
     if ($request->filled('categoly')) {
@@ -163,6 +165,7 @@ public function search(Request $request)
         $game->manager = $validated['manager'] ?? null;
         $game->doctor = $validated['doctor'] ?? null;
         $game->division_order = $validated['division_order'] ?? $game->division_order;
+        $game->del_flg = 0;
 
         $game->save();
 
@@ -172,7 +175,10 @@ public function search(Request $request)
     // 試合詳細取得
     public function show($id)
     {
-    $game = Game::with(['team1', 'team2', 'venue', 'score'])->findOrFail($id);
+    $game = Game::with(['team1', 'team2', 'venue', 'score'])
+    ->where('game_id', $id)
+    ->where('del_flg', 0)
+    ->firstOrFail();
 
     if ($game->score) {
         // NULLだった場合は空文字に変換（フロントの表示防止）
@@ -302,10 +308,12 @@ if (isset($validated['score'])) {
     // 試合削除
     public function destroy($id)
     {
-        $game = Game::findOrFail($id);
-        $game->delete();
+    $game = Game::findOrFail($id);
+    $game->update(['del_flg' => 1]);
 
-        return response()->json(['message' => '試合情報を削除しました']);
+    Score::where('game_id', $game->game_id)->update(['del_flg' => 1]);
+
+    return response()->json(['message' => '試合情報を論理削除しました']);
     }
 
 }

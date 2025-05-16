@@ -54,7 +54,7 @@ Route::middleware('auth:sanctum')->post('/logout', function (Request $request) {
         $user->tokens()->delete(); // ← トークンを削除
     }
 
-    // 🔴 LaravelセッションとCSRF Cookieの両方を無効化して返す
+    //  LaravelセッションとCSRF Cookieの両方を無効化して返す
     return response()->json(['message' => 'ログアウトしました'])
         ->cookie('XSRF-TOKEN', '', -1)
         ->cookie('laravel_session', '', -1);
@@ -99,7 +99,7 @@ Route::middleware('auth:sanctum')->post('/change-password', function (Request $r
 // 一覧取得はログインが必要（そのままでOK）
 Route::middleware(['auth:sanctum'])->get('/members', [MemberController::class, 'index']);
 
-// 🔓 会員登録はログインなしでもOKにする
+//  会員登録はログインなしでもOKにする
 Route::post('/members', [MemberController::class, 'store']);
 
 //家族登録モーダルルーティン
@@ -120,6 +120,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/teams/{id}', [App\Http\Controllers\TeamController::class, 'destroy']);//チーム削除
     Route::post('/tournament-results', [TournamentResultController::class, 'store']);//大会結果登録
     Route::get('/tournament-results', [TournamentResultController::class, 'index']);//大会結果詳細
+    Route::delete('/tournaments/{id}', [TournamentController::class, 'destroy']);//大会削除
     Route::get('/games', [GameController::class, 'index']); // 試合一覧
     Route::post('/games', [GameController::class, 'store']); // 試合登録
     Route::get('/games/search', [GameController::class, 'search']);//試合検索
@@ -133,7 +134,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/tournaments/list', [TournamentController::class, 'list']);//試合登録前選択
     Route::get('/tournaments/{id}/check-division', [TournamentController::class, 'checkDivisionFlg']);//試合登録ディビジョン表示高速化
     Route::get('/tournaments/{id}/divisions', [TournamentController::class, 'divisions']);
-    
+
 });
 
 //家族管理ルーティング
