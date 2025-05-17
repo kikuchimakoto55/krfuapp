@@ -22,17 +22,16 @@ class TournamentController extends Controller
                 'event_period_end' => 'nullable|date',
                 'publishing' => 'required|boolean',
                 'divisionflg' => 'required|boolean',
-                'divisions' => 'nullable|json',
+                'divisions' => 'nullable|string',
             ]);
         } catch (ValidationException $e) {
             Log::error('バリデーション失敗', $e->errors());
             return response()->json(['errors' => $e->errors()], 422);
         }
 
-        //  divisions を JSON 文字列にする
-            if (!empty($validated['divisions']) && is_array($validated['divisions'])) {
-            $validated['divisions'] = json_encode($validated['divisions'], JSON_UNESCAPED_UNICODE);
-        }else {
+        // divisions の形式は既に JSON 文字列なのでそのまま使用
+        // 空であれば null にするだけでOK
+        if (empty($validated['divisions'])) {
             $validated['divisions'] = null;
         }
 
