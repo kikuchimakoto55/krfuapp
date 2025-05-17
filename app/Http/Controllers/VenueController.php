@@ -57,4 +57,12 @@ class VenueController extends Controller
 
         return response()->json(['message' => '会場情報を更新しました', 'venue' => $venue]);
     }
+
+    // 会場削除
+    public function destroy($id)
+    {
+        $venue = \App\Models\Venue::findOrFail($id);
+        $venue->update(['del_flg' => 1]);
+        return response()->json(['message' => '会場を論理削除しました']);
+    }
 }

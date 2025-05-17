@@ -130,6 +130,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/venues', [VenueController::class, 'index']);// 会場一覧
     Route::post('/venues', [VenueController::class, 'store']);// 会場管理
     Route::get('/venues/{id}', [VenueController::class, 'show']);//会場編集
+    Route::delete('/venues/{id}', [VenueController::class, 'destroy']);//会場削除
     Route::get('/tournaments/search', [TournamentController::class, 'search']);
     Route::get('/tournaments/list', [TournamentController::class, 'list']);//試合登録前選択
     Route::get('/tournaments/{id}/check-division', [TournamentController::class, 'checkDivisionFlg']);//試合登録ディビジョン表示高速化
