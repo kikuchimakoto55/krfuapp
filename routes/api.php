@@ -160,8 +160,13 @@ Route::put('/tournaments/{id}', [TournamentController::class, 'update']);
 Route::get('/members/{id}/public', [MemberController::class, 'public']);
 //大会結果登録完了画面ルーティング
 Route::middleware('auth:sanctum')->get('/tournament-results/{tournament_id}', [TournamentResultController::class, 'showByTournament']);
+
+//大会結果編集（t_tournament_results の一括更新）
+Route::middleware('auth:sanctum')->put('/tournament-results/update-by-tournament/{tournament_id}', [TournamentResultController::class, 'updateByTournament']);
+
 //会場編集更新ルーティング
 Route::middleware(['auth:sanctum'])->put('/venues/{id}', [VenueController::class, 'update']);
+
 //試合検索ルーティング
 Route::middleware(['auth:sanctum'])->get('/games/search', [GameController::class, 'search']);
 

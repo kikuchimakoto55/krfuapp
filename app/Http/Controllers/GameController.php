@@ -157,14 +157,13 @@ public function search(Request $request)
         $game->team1_id = $validated['team1_id'];
         $game->team2_id = $validated['team2_id'];
         $game->division_name = $validated['division_name'];
-        $game->division_order = 0; // 今は仮0
+        $game->division_order = $validated['division_order'] ?? null; // ✅ ここだけにする
         $game->round_label = $validated['match_round'];
         $game->game_date = $validated['match_datetime'];
         $game->approval_flg = $validated['approval_flg'] ?? 0;
         $game->referee = $validated['referee'] ?? null;
         $game->manager = $validated['manager'] ?? null;
         $game->doctor = $validated['doctor'] ?? null;
-        $game->division_order = $validated['division_order'] ?? $game->division_order;
         $game->del_flg = 0;
 
         $game->save();
@@ -174,19 +173,37 @@ public function search(Request $request)
 
     // 試合詳細取得
     public function show($id)
-    {
+{
     $game = Game::with(['team1', 'team2', 'venue', 'score'])
-    ->where('game_id', $id)
-    ->where('del_flg', 0)
-    ->firstOrFail();
+        ->where('game_id', $id)
+        ->where('del_flg', 0)
+        ->firstOrFail();
 
     if ($game->score) {
-        // NULLだった場合は空文字に変換（フロントの表示防止）
         $game->score->score_book = $game->score->score_book ?? '';
     }
+    \Log::debug('division_order = ' . $game->division_order);
 
-    return $game;
-    }
+    return response()->json([
+        'game_id' => $game->game_id,
+        'tournament_id' => $game->tournament_id,
+        'division_order' => $game->division_order, // ← ★これを明示的に
+        'division_name' => $game->division_name,
+        'round_label' => $game->round_label,
+        'game_date' => $game->game_date,
+        'venue_id' => $game->venue_id,
+        'team1_id' => $game->team1_id,
+        'team2_id' => $game->team2_id,
+        'referee' => $game->referee,
+        'manager' => $game->manager,
+        'doctor' => $game->doctor,
+        'score' => $game->score,
+        'team1' => $game->team1,
+        'team2' => $game->team2,
+        'venue' => $game->venue,
+    ]);
+    
+}
 
     // 試合更新
     public function update(Request $request, $id)
