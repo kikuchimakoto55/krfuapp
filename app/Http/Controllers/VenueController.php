@@ -7,11 +7,28 @@ use App\Models\Venue;
 
 class VenueController extends Controller
 {
-    public function index()
-    {
-        $venues = Venue::where('del_flg', 0)->get(); // 削除フラグが立っていないものだけ取得
-        return response()->json($venues);
+    public function index(Request $request)
+{
+
+    $query = Venue::where('del_flg', 0);
+
+    // 会場名で部分一致（空文字も許可）
+    if (isset($request->venue_name)) {
+        $query->where('venue_name', 'like', '%' . $request->venue_name . '%');
     }
+
+    // 住所で部分一致
+    if (isset($request->address)) {
+        $query->where('address', 'like', '%' . $request->address . '%');
+    }
+
+    // 駐車場（0 or 1）明示チェック
+    if ($request->has('parking') && $request->parking !== '') {
+        $query->where('parking', $request->parking);
+    }
+
+    return response()->json($query->get());
+}
 
     public function store(Request $request)
     {
