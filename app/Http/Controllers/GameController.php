@@ -13,7 +13,7 @@ class GameController extends Controller
     public function index()
 {
     $games = DB::table('t_games')
-        ->where('t_games.del_flg', 0) // ✅ 論理削除除外
+        ->where('t_games.del_flg', 0) //  論理削除除外
         ->leftJoin('t_teams as team1', 't_games.team1_id', '=', 'team1.team_id')
         ->leftJoin('t_teams as team2', 't_games.team2_id', '=', 'team2.team_id')
         ->leftJoin('t_tournaments', 't_games.tournament_id', '=', 't_tournaments.tournament_id') 
@@ -34,7 +34,8 @@ class GameController extends Controller
             't_scores.op1fh_score as team1_score1st_point',
             't_scores.op1hh_score as team1_score2nd_point',
             't_scores.op2fh_score as team2_score1st_point',
-            't_scores.op2hh_score as team2_score2nd_point'
+            't_scores.op2hh_score as team2_score2nd_point',
+            't_scores.score_book as document_path',
         )
         ->distinct()
         ->orderBy('t_games.game_date', 'asc')
@@ -68,7 +69,8 @@ public function search(Request $request)
             't_scores.op1fh_score as team1_score1st_point',
             't_scores.op1hh_score as team1_score2nd_point',
             't_scores.op2fh_score as team2_score1st_point',
-            't_scores.op2hh_score as team2_score2nd_point'
+            't_scores.op2hh_score as team2_score2nd_point',
+            't_scores.score_book as document_path',
         );
 
 
@@ -149,6 +151,7 @@ public function search(Request $request)
             'score.score_book' => 'nullable|string',
             'score.gamereport' => 'nullable|string',
             'score.publishing' => 'nullable|integer',
+            
         ]);
 
         $game = new Game();
@@ -157,7 +160,7 @@ public function search(Request $request)
         $game->team1_id = $validated['team1_id'];
         $game->team2_id = $validated['team2_id'];
         $game->division_name = $validated['division_name'];
-        $game->division_order = $validated['division_order'] ?? null; // ✅ ここだけにする
+        $game->division_order = $validated['division_order'] ?? null; 
         $game->round_label = $validated['match_round'];
         $game->game_date = $validated['match_datetime'];
         $game->approval_flg = $validated['approval_flg'] ?? 0;
@@ -165,7 +168,6 @@ public function search(Request $request)
         $game->manager = $validated['manager'] ?? null;
         $game->doctor = $validated['doctor'] ?? null;
         $game->del_flg = 0;
-
         $game->save();
 
         return response()->json(['message' => '試合情報を登録しました', 'game' => $game], 201);
@@ -187,7 +189,7 @@ public function search(Request $request)
     return response()->json([
         'game_id' => $game->game_id,
         'tournament_id' => $game->tournament_id,
-        'division_order' => $game->division_order, // ← ★これを明示的に
+        'division_order' => $game->division_order, 
         'division_name' => $game->division_name,
         'round_label' => $game->round_label,
         'game_date' => $game->game_date,
@@ -260,6 +262,7 @@ public function search(Request $request)
             'score.score_book' => 'nullable|string',
             'score.gamereport' => 'nullable|string',
             'score.publishing' => 'nullable|integer',
+            
         ]);
 
         // 基本情報（readonlyの項目は除く）を更新
@@ -272,6 +275,7 @@ public function search(Request $request)
         if (array_key_exists('referee', $validated)) $game->referee = $validated['referee'];
         if (array_key_exists('manager', $validated)) $game->manager = $validated['manager'];
         if (array_key_exists('doctor', $validated)) $game->doctor = $validated['doctor'];
+        
         $game->save();
 
         // スコア・反則更新
@@ -295,6 +299,8 @@ if (isset($validated['score'])) {
     ])->toArray();
     $scoreData['gamereport'] = $validated['game_report'] ?? null;
     $scoreData['publishing'] = $validated['publishing'] ?? 1;
+    $scoreData['op1_total_score'] = ($scoreData['op1fh_score'] ?? 0) + ($scoreData['op1hh_score'] ?? 0);
+    $scoreData['op2_total_score'] = ($scoreData['op2fh_score'] ?? 0) + ($scoreData['op2hh_score'] ?? 0);
 
     // ファイルがある場合はパスを追加
     if ($request->hasFile('scorebook')) {
@@ -332,5 +338,6 @@ if (isset($validated['score'])) {
 
     return response()->json(['message' => '試合情報を論理削除しました']);
     }
+   
 
 }
