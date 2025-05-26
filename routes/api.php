@@ -12,7 +12,7 @@ use App\Http\Controllers\TournamentController;
 use App\Http\Controllers\TournamentResultController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\VenueController;
-
+use App\Http\Controllers\LicenseController;
 
 // Sanctum の CSRF Cookie を取得
 Route::get('/sanctum/csrf-cookie', function (Request $request) {
@@ -135,6 +135,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/tournaments/list', [TournamentController::class, 'list']);//試合登録前選択
     Route::get('/tournaments/{id}/check-division', [TournamentController::class, 'checkDivisionFlg']);//試合登録ディビジョン表示高速化
     Route::get('/tournaments/{id}/divisions', [TournamentController::class, 'divisions']);
+    Route::get('/licenses', [LicenseController::class, 'index']);//資格登録
 
 });
 
@@ -170,4 +171,11 @@ Route::middleware(['auth:sanctum'])->put('/venues/{id}', [VenueController::class
 //試合検索ルーティング
 Route::middleware(['auth:sanctum'])->get('/games/search', [GameController::class, 'search']);
 
+//資格登録ルーティング
+Route::middleware('auth:sanctum')->post('/licenses', [LicenseController::class, 'store']);
+//資格編集ルーティング
+Route::middleware('auth:sanctum')->group(function () {Route::get('/licenses/{id}', [LicenseController::class, 'show']); Route::put('/licenses/{id}', [LicenseController::class, 'update']);
+});
+//資格削除ルーティング
+Route::middleware('auth:sanctum')->delete('/licenses/{id}', [LicenseController::class, 'destroy']);
 
