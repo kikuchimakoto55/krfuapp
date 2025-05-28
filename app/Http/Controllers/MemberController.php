@@ -145,19 +145,30 @@ public function update(UpdateMemberRequest $request, $id)
 // 会員詳細の取得（詳細画面表示用）
 public function show($id)
 {
-    $member = Member::find($id);
+    $member = Member::with(['hCredentials.license'])->find($id); // 保有資格と関連資格を取得
 
     if (!$member) {
         return response()->json(['message' => '会員が見つかりません'], 404);
     }
+
     // 家族情報を取得（片方向でOKな場合）
-    $families = \DB::table('t_families')
+    $families = DB::table('t_families')
         ->join('t_members', 't_members.member_id', '=', 't_families.family_id')
         ->where('t_families.member_id', $id)
-        ->select('t_families.id','t_members.member_id', 't_members.username_sei', 't_members.username_mei', 't_families.relationship')
+        ->select(
+            't_families.id',
+            't_members.member_id',
+            't_members.username_sei',
+            't_members.username_mei',
+            't_families.relationship'
+        )
         ->get();
 
-    return response()->json(['member' => $member,'families' => $families]);
+    return response()->json([
+        'member' => $member,
+        'families' => $families,
+        'h_credentials' => $member->hCredentials, // ← フロントと一致させる
+    ]);
 }
 
 public function destroy($id)

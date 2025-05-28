@@ -7,15 +7,15 @@ use App\Models\License;
 
 class LicenseController extends Controller
 {
-    public function index(Request $request)
+   public function index(Request $request)
     {
         $query = License::query()->where('del_flg', 0);
 
-        if ($request->filled('keyword')) {
+        if ($request->has('keyword') && !empty($request->keyword)) {
             $keyword = $request->keyword;
             $query->where(function($q) use ($keyword) {
                 $q->where('licensekindsname', 'like', "%{$keyword}%")
-                ->orWhere('license_id', 'like', "%{$keyword}%");
+                ->orWhere('license_name', 'like', "%{$keyword}%");
             });
         }
 
@@ -23,7 +23,6 @@ class LicenseController extends Controller
 
         return response()->json($licenses);
     }
-
     public function store(Request $request)
     {
     $validated = $request->validate([

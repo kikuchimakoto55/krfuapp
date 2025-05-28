@@ -170,6 +170,18 @@ public function search(Request $request)
         $game->del_flg = 0;
         $game->save();
 
+        if (isset($validated['score'])) {
+            $scoreData = $validated['score'];
+            $scoreData['op1_total_score'] = ($scoreData['op1fh_score'] ?? 0) + ($scoreData['op1hh_score'] ?? 0);
+            $scoreData['op2_total_score'] = ($scoreData['op2fh_score'] ?? 0) + ($scoreData['op2hh_score'] ?? 0);
+
+            Score::updateOrCreate(
+                ['game_id' => $game->game_id],
+                $scoreData
+            );
+        }
+
+
         return response()->json(['message' => '試合情報を登録しました', 'game' => $game], 201);
     }
 

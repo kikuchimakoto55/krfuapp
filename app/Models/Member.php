@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\HCredential;
 
 class Member extends Authenticatable
 {
@@ -65,4 +66,13 @@ class Member extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    public function hCredentials()
+    {
+    return $this->hasMany(HCredential::class, 'member_id', 'member_id')
+                ->where('del_flg', 0)
+                ->with('license');
+    }
+
+    
 }
