@@ -14,6 +14,7 @@ use App\Http\Controllers\GameController;
 use App\Http\Controllers\VenueController;
 use App\Http\Controllers\LicenseController;
 use App\Http\Controllers\HCredentialController;
+use App\Http\Controllers\EventController;
 
 // Sanctum の CSRF Cookie を取得
 Route::get('/sanctum/csrf-cookie', function (Request $request) {
@@ -139,6 +140,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/licenses', [LicenseController::class, 'index']);//資格登録
     Route::post('/members/{id}/credentials', [HCredentialController::class, 'updateForMember']);// 保有資格（認定証）更新API（指定会員ID）
     Route::put('/members/{id}/credentials', [HCredentialController::class, 'updateForMember']);// 保有資格（認定証）更新API（指定会員ID）
+    Route::delete('/events/{id}', [EventController::class, 'destroy']);//イベント削除
 });
 
 //家族管理ルーティング
@@ -182,3 +184,12 @@ Route::middleware('auth:sanctum')->group(function () {Route::get('/licenses/{id}
 Route::middleware('auth:sanctum')->delete('/licenses/{id}', [LicenseController::class, 'destroy']);
 //保有資格ルーティング
 Route::middleware('auth:sanctum')->get('/members/{id}/credentials', [HCredentialController::class, 'getForMember']);
+//イベント管理ルーティング
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/events', [EventController::class, 'index']);
+    Route::post('/events', [EventController::class, 'store']);
+    Route::get('/events/{id}', [EventController::class, 'show']);
+    Route::put('/events/{id}', [EventController::class, 'update']);
+    Route::delete('/events/{id}', [EventController::class, 'destroy']);
+});
+
