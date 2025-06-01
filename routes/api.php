@@ -16,6 +16,7 @@ use App\Http\Controllers\LicenseController;
 use App\Http\Controllers\HCredentialController;
 use App\Http\Controllers\EventController;
 
+
 // Sanctum の CSRF Cookie を取得
 Route::get('/sanctum/csrf-cookie', function (Request $request) {
 return response()->noContent(); // CSRF Cookie をセット
@@ -114,6 +115,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/members/{id}', [MemberController::class, 'show']);//会員詳細
     Route::put('/members/{id}', [MemberController::class, 'update']);//会員詳細更新
     Route::delete('/members/{id}', [MemberController::class, 'destroy']);//会員削除
+    Route::delete('/families/reverse', [FamilyController::class, 'deleteReverse']);//家族解除
     Route::post('/change-password', [PasswordController::class, 'change']);//パスワード更新
     Route::get('/teams', [App\Http\Controllers\TeamController::class, 'index']);//チーム一覧
     Route::post('/teams', [App\Http\Controllers\TeamController::class, 'store']);//チーム登録
