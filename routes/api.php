@@ -17,6 +17,7 @@ use App\Http\Controllers\HCredentialController;
 use App\Http\Controllers\EventController;
 
 
+
 // Sanctum の CSRF Cookie を取得
 Route::get('/sanctum/csrf-cookie', function (Request $request) {
 return response()->noContent(); // CSRF Cookie をセット
@@ -75,7 +76,12 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 // CORS の問題を防ぐための OPTIONS メソッド対応
 Route::options('/{any}', function () {
-    return response()->noContent();
+    return response('', 204, [
+        'Access-Control-Allow-Origin' => 'http://localhost:5173',
+        'Access-Control-Allow-Credentials' => 'true',
+        'Access-Control-Allow-Methods' => 'POST, GET, OPTIONS, PUT, DELETE',
+        'Access-Control-Allow-Headers' => 'Content-Type, Authorization, X-Requested-With',
+    ]);
 })->where('any', '.*');
 
 // パスワード変更 API (オプション)
@@ -123,7 +129,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/teams/{id}', [App\Http\Controllers\TeamController::class, 'update']);//チーム更新
     Route::delete('/teams/{id}', [App\Http\Controllers\TeamController::class, 'destroy']);//チーム削除
     Route::post('/tournament-results', [TournamentResultController::class, 'store']);//大会結果登録
-    Route::get('/tournament-results', [TournamentResultController::class, 'index']);//大会結果詳細
+    Route::get('/tournament-results', [TournamentResultController::class, 'index']);//大会結果一覧
+    Route::put('/tournament-results/{tournament_id}', [TournamentResultController::class, 'update']);//大会結果編集更新
+    Route::get('/tournament-results/{id}', [TournamentResultController::class, 'show']);//大会結果詳細
     Route::delete('/tournaments/{id}', [TournamentController::class, 'destroy']);//大会削除
     Route::get('/games', [GameController::class, 'index']); // 試合一覧
     Route::post('/games', [GameController::class, 'store']); // 試合登録
@@ -166,7 +174,7 @@ Route::put('/tournaments/{id}', [TournamentController::class, 'update']);
 //会員登録完了画面情報出力ルーティング
 Route::get('/members/{id}/public', [MemberController::class, 'public']);
 //大会結果登録完了画面ルーティング
-Route::middleware('auth:sanctum')->get('/tournament-results/{tournament_id}', [TournamentResultController::class, 'showByTournament']);
+Route::middleware('auth:sanctum')->get('/tournament-results/{tournament_id}', [TournamentResultController::class, 'show']);
 
 //大会結果編集（t_tournament_results の一括更新）
 Route::middleware('auth:sanctum')->put('/tournament-results/update-by-tournament/{tournament_id}', [TournamentResultController::class, 'updateByTournament']);
