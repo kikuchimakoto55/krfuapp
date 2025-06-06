@@ -203,3 +203,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/events/{id}', [EventController::class, 'destroy']);
 });
 
+//大会結果有 ディビジョン追加制御ルーティング
+Route::get('/tournament-results/{id}/exists', [TournamentResultController::class, 'exists']);

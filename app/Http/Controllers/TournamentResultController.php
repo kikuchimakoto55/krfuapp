@@ -222,4 +222,12 @@ class TournamentResultController extends Controller
 
         return response()->json([], 400);
     }
+
+    public function exists($id)
+{
+    $hasResults = TournamentResult::where('tournament_id', $id)
+                    ->where('del_flg', 0)
+                    ->exists();
+    return response()->json(['hasResults' => $hasResults]);
+}
 }
