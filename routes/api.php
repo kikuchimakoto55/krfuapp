@@ -130,6 +130,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/teams/{id}', [App\Http\Controllers\TeamController::class, 'destroy']);//チーム削除
     Route::post('/tournament-results', [TournamentResultController::class, 'store']);//大会結果登録
     Route::get('/tournament-results', [TournamentResultController::class, 'index']);//大会結果一覧
+    Route::middleware('auth:sanctum')->delete('/tournament-results/by-tournament/{tournament_id}', [TournamentResultController::class, 'destroyByTournamentId']);//大会結果削除
     Route::put('/tournament-results/{tournament_id}', [TournamentResultController::class, 'update']);//大会結果編集更新
     Route::get('/tournament-results/{id}', [TournamentResultController::class, 'show']);//大会結果詳細
     Route::delete('/tournaments/{id}', [TournamentController::class, 'destroy']);//大会削除

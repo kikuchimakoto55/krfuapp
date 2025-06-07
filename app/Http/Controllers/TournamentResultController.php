@@ -106,13 +106,13 @@ class TournamentResultController extends Controller
      */
     public function update(Request $request, $tournament_id)
 {
-    Log::debug('📥 TournamentResult update request received.');
+    Log::debug(' TournamentResult update request received.');
 
-    // ✅ FormData形式（results[n][field]）で送信されたネスト構造をそのまま取得
+    //  FormData形式（results[n][field]）で送信されたネスト構造をそのまま取得
     $results = $request->input('results');
-    Log::debug('📦 input results:', $results);
+    Log::debug(' input results:', $results);
 
-    // ✅ ファイル（document）がある場合はマージする
+    //  ファイル（document）がある場合はマージする
     foreach ($results as $index => &$result) {
         if ($request->hasFile("results.$index.document")) {
             $result['document'] = $request->file("results.$index.document");
@@ -120,14 +120,14 @@ class TournamentResultController extends Controller
     }
     unset($result);
 
-    Log::debug('✅ ファイル統合後 results:', $results);
+    Log::debug(' ファイル統合後 results:', $results);
 
     if (empty($results)) {
-        Log::error('📛 results フィールドが存在しないため終了');
+        Log::error(' results フィールドが存在しないため終了');
         return response()->json(['error' => 'results not found'], 422);
     }
 
-    // ✅ バリデーション定義
+    //  バリデーション定義
     $validator = Validator::make([
         'tournament_id' => $tournament_id,
         'results' => $results
@@ -144,7 +144,7 @@ class TournamentResultController extends Controller
     ]);
 
     if ($validator->fails()) {
-        Log::error('❌ バリデーションエラー', [
+        Log::error(' バリデーションエラー', [
             'errors' => $validator->errors()->toArray(),
             'validated_input' => $results,
         ]);
@@ -161,8 +161,19 @@ class TournamentResultController extends Controller
     foreach ($results as $item) {
         $path = null;
         if (!empty($item['document'])) {
-            $path = $item['document']->store('tournament_documents', 'public');
-        }
+    // ファイルがアップロードされた場合
+    $timestampDir = now()->format('Ymd_His');
+    $uniqueName = Str::uuid() . '_' . $item['document']->getClientOriginalName();
+
+    $path = $item['document']->storeAs(
+        "tournament_results/{$timestampDir}",
+        $uniqueName,
+        'public'
+    );
+} elseif (!empty($item['document_path'])) {
+    // ✅ ファイルはないが既存 path を引き継ぐ場合
+    $path = $item['document_path'];
+}
 
         TournamentResult::create([
             'tournament_id' => $tournament_id,
@@ -229,5 +240,12 @@ class TournamentResultController extends Controller
                     ->where('del_flg', 0)
                     ->exists();
     return response()->json(['hasResults' => $hasResults]);
+}
+
+public function destroyByTournamentId($tournament_id)
+{
+    TournamentResult::where('tournament_id', $tournament_id)->update(['del_flg' => 1]);
+
+    return response()->json(['message' => '大会結果を削除しました。']);
 }
 }
