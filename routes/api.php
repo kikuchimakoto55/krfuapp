@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Models\Member; // t_members 用のモデル
+use App\Models\Member;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\FamilyController;
@@ -15,15 +15,15 @@ use App\Http\Controllers\VenueController;
 use App\Http\Controllers\LicenseController;
 use App\Http\Controllers\HCredentialController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\MemberImportController;
+use App\Http\Controllers\MemberExportController;
 
-
-
-// Sanctum の CSRF Cookie を取得
+// CSRF Cookie
 Route::get('/sanctum/csrf-cookie', function (Request $request) {
-return response()->noContent(); // CSRF Cookie をセット
+    return response()->noContent();
 });
 
-// ログイン処理
+// ログイン
 Route::post('/login', function (Request $request) {
     $credentials = $request->validate([
         'email' => 'required|email',
@@ -36,7 +36,6 @@ Route::post('/login', function (Request $request) {
         return response()->json(['message' => 'Unauthorized'], 401);
     }
 
-    // トークン作成
     $token = $member->createToken('authToken')->plainTextToken;
 
     return response()->json([
@@ -50,21 +49,18 @@ Route::post('/login', function (Request $request) {
     ]);
 });
 
-// ログアウト処理
+// ログアウト
 Route::middleware('auth:sanctum')->post('/logout', function (Request $request) {
     $user = $request->user();
-
     if ($user) {
-        $user->tokens()->delete(); // ← トークンを削除
+        $user->tokens()->delete();
     }
-
-    //  LaravelセッションとCSRF Cookieの両方を無効化して返す
     return response()->json(['message' => 'ログアウトしました'])
         ->cookie('XSRF-TOKEN', '', -1)
         ->cookie('laravel_session', '', -1);
 });
 
-// 認証済みユーザー情報を取得
+// 認証済みユーザー情報取得
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return response()->json([
         'id' => $request->user()->id,
@@ -74,7 +70,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     ]);
 });
 
-// CORS の問題を防ぐための OPTIONS メソッド対応
+// OPTIONS 対応
 Route::options('/{any}', function () {
     return response('', 204, [
         'Access-Control-Allow-Origin' => 'http://localhost:5173',
@@ -84,119 +80,62 @@ Route::options('/{any}', function () {
     ]);
 })->where('any', '.*');
 
-// パスワード変更 API (オプション)
-Route::middleware('auth:sanctum')->post('/change-password', function (Request $request) {
-    $request->validate([
-        'current_password' => 'required',
-        'new_password' => 'required|min:8',
-    ]);
-
-    $user = $request->user();
-
-    // 現在のパスワードが正しいかチェック
-    if (!Hash::check($request->current_password, $user->password)) {
-        return response()->json(['message' => '現在のパスワードが間違っています'], 403);
-    }
-
-    // 新しいパスワードを設定
-    $user->password = Hash::make($request->new_password);
-    $user->save();
-
-    return response()->json(['message' => 'パスワードを変更しました']);
-});
-
-// 一覧取得はログインが必要（そのままでOK）
-Route::middleware(['auth:sanctum'])->get('/members', [MemberController::class, 'index']);
-
-//  会員登録はログインなしでもOKにする
-Route::post('/members', [MemberController::class, 'store']);
-
-//家族登録モーダルルーティン
-Route::get('/members/search', [MemberController::class, 'search']);
-
-
-// POST /api/change-password に対応する処理（現パスワードチェック、更新）を追加
-//マイページルーティング
+// 認証必要なルート
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/members/{id}', [MemberController::class, 'show']);//会員詳細
-    Route::put('/members/{id}', [MemberController::class, 'update']);//会員詳細更新
-    Route::delete('/members/{id}', [MemberController::class, 'destroy']);//会員削除
-    Route::delete('/families/reverse', [FamilyController::class, 'deleteReverse']);//家族解除
-    Route::post('/change-password', [PasswordController::class, 'change']);//パスワード更新
-    Route::get('/teams', [App\Http\Controllers\TeamController::class, 'index']);//チーム一覧
-    Route::post('/teams', [App\Http\Controllers\TeamController::class, 'store']);//チーム登録
-    Route::get('/teams/{id}', [App\Http\Controllers\TeamController::class, 'show']);//チーム詳細
-    Route::put('/teams/{id}', [App\Http\Controllers\TeamController::class, 'update']);//チーム更新
-    Route::delete('/teams/{id}', [App\Http\Controllers\TeamController::class, 'destroy']);//チーム削除
-    Route::post('/tournament-results', [TournamentResultController::class, 'store']);//大会結果登録
-    Route::get('/tournament-results', [TournamentResultController::class, 'index']);//大会結果一覧
-    Route::middleware('auth:sanctum')->delete('/tournament-results/by-tournament/{tournament_id}', [TournamentResultController::class, 'destroyByTournamentId']);//大会結果削除
-    Route::put('/tournament-results/{tournament_id}', [TournamentResultController::class, 'update']);//大会結果編集更新
-    Route::get('/tournament-results/{id}', [TournamentResultController::class, 'show']);//大会結果詳細
-    Route::delete('/tournaments/{id}', [TournamentController::class, 'destroy']);//大会削除
-    Route::get('/games', [GameController::class, 'index']); // 試合一覧
-    Route::post('/games', [GameController::class, 'store']); // 試合登録
-    Route::get('/games/search', [GameController::class, 'search']);//試合検索
-    Route::get('/games/{id}', [GameController::class, 'show']); // 試合詳細
-    Route::put('/games/{id}', [GameController::class, 'update']); // 試合更新
-    Route::delete('/games/{id}', [GameController::class, 'destroy']); // 試合削除
-    Route::get('/venues', [VenueController::class, 'index']);// 会場一覧
-    Route::post('/venues', [VenueController::class, 'store']);// 会場管理
-    Route::get('/venues/{id}', [VenueController::class, 'show']);//会場編集
-    Route::delete('/venues/{id}', [VenueController::class, 'destroy']);//会場削除
+    Route::get('/members/export', [MemberExportController::class, 'export']); // ✅ ここを先に
+    Route::get('/members', [MemberController::class, 'index']);
+    Route::get('/members/{id}', [MemberController::class, 'show']);
+    Route::put('/members/{id}', [MemberController::class, 'update']);
+    Route::delete('/members/{id}', [MemberController::class, 'destroy']);
+    Route::post('/members/import-preview', [MemberImportController::class, 'preview']);
+    Route::post('/members/import', [MemberImportController::class, 'import']);
+
+    Route::delete('/families/reverse', [FamilyController::class, 'deleteReverse']);
+    Route::post('/change-password', [PasswordController::class, 'change']);
+
+    Route::get('/teams', [App\Http\Controllers\TeamController::class, 'index']);
+    Route::post('/teams', [App\Http\Controllers\TeamController::class, 'store']);
+    Route::get('/teams/{id}', [App\Http\Controllers\TeamController::class, 'show']);
+    Route::put('/teams/{id}', [App\Http\Controllers\TeamController::class, 'update']);
+    Route::delete('/teams/{id}', [App\Http\Controllers\TeamController::class, 'destroy']);
+
+    Route::post('/tournament-results', [TournamentResultController::class, 'store']);
+    Route::get('/tournament-results', [TournamentResultController::class, 'index']);
+    Route::delete('/tournament-results/by-tournament/{tournament_id}', [TournamentResultController::class, 'destroyByTournamentId']);
+    Route::put('/tournament-results/{tournament_id}', [TournamentResultController::class, 'update']);
+    Route::get('/tournament-results/{id}', [TournamentResultController::class, 'show']);
+    Route::put('/tournament-results/update-by-tournament/{tournament_id}', [TournamentResultController::class, 'updateByTournament']);
+
+    Route::delete('/tournaments/{id}', [TournamentController::class, 'destroy']);
+
+    Route::get('/games', [GameController::class, 'index']);
+    Route::post('/games', [GameController::class, 'store']);
+    Route::get('/games/search', [GameController::class, 'search']);
+    Route::get('/games/{id}', [GameController::class, 'show']);
+    Route::put('/games/{id}', [GameController::class, 'update']);
+    Route::delete('/games/{id}', [GameController::class, 'destroy']);
+
+    Route::get('/venues', [VenueController::class, 'index']);
+    Route::post('/venues', [VenueController::class, 'store']);
+    Route::get('/venues/{id}', [VenueController::class, 'show']);
+    Route::put('/venues/{id}', [VenueController::class, 'update']);
+    Route::delete('/venues/{id}', [VenueController::class, 'destroy']);
+
     Route::get('/tournaments/search', [TournamentController::class, 'search']);
-    Route::get('/tournaments/list', [TournamentController::class, 'list']);//試合登録前選択
-    Route::get('/tournaments/{id}/check-division', [TournamentController::class, 'checkDivisionFlg']);//試合登録ディビジョン表示高速化
+    Route::get('/tournaments/list', [TournamentController::class, 'list']);
+    Route::get('/tournaments/{id}/check-division', [TournamentController::class, 'checkDivisionFlg']);
     Route::get('/tournaments/{id}/divisions', [TournamentController::class, 'divisions']);
-    Route::get('/licenses', [LicenseController::class, 'index']);//資格登録
-    Route::post('/members/{id}/credentials', [HCredentialController::class, 'updateForMember']);// 保有資格（認定証）更新API（指定会員ID）
-    Route::put('/members/{id}/credentials', [HCredentialController::class, 'updateForMember']);// 保有資格（認定証）更新API（指定会員ID）
-    Route::delete('/events/{id}', [EventController::class, 'destroy']);//イベント削除
-});
 
-//家族管理ルーティング
-Route::middleware('auth:sanctum')->post('/families', [FamilyController::class, 'store']);
+    Route::get('/licenses', [LicenseController::class, 'index']);
+    Route::post('/licenses', [LicenseController::class, 'store']);
+    Route::get('/licenses/{id}', [LicenseController::class, 'show']);
+    Route::put('/licenses/{id}', [LicenseController::class, 'update']);
+    Route::delete('/licenses/{id}', [LicenseController::class, 'destroy']);
 
-//家族編集ルーティング
-Route::middleware('auth:sanctum')->put('/families/{id}', [FamilyController::class, 'update']);
-//家族解除ルーティング
-Route::middleware('auth:sanctum')->delete('/families/{id}', [FamilyController::class, 'destroy']);
-// 家族検索ルーティング
-Route::middleware('auth:sanctum')->get('/families/search', [FamilyController::class, 'search']);
-// 大会登録ルーティング
-Route::post('/tournaments', [TournamentController::class, 'store']);
-//大会一覧ルーティング
-Route::get('/tournaments', [TournamentController::class, 'index']);
+    Route::get('/members/{id}/credentials', [HCredentialController::class, 'getForMember']);
+    Route::post('/members/{id}/credentials', [HCredentialController::class, 'updateForMember']);
+    Route::put('/members/{id}/credentials', [HCredentialController::class, 'updateForMember']);
 
-//大会編集ルーティング
-Route::get('/tournaments/{id}', [TournamentController::class, 'show']);
-Route::put('/tournaments/{id}', [TournamentController::class, 'update']);
-
-//会員登録完了画面情報出力ルーティング
-Route::get('/members/{id}/public', [MemberController::class, 'public']);
-//大会結果登録完了画面ルーティング
-Route::middleware('auth:sanctum')->get('/tournament-results/{tournament_id}', [TournamentResultController::class, 'show']);
-
-//大会結果編集（t_tournament_results の一括更新）
-Route::middleware('auth:sanctum')->put('/tournament-results/update-by-tournament/{tournament_id}', [TournamentResultController::class, 'updateByTournament']);
-
-//会場編集更新ルーティング
-Route::middleware(['auth:sanctum'])->put('/venues/{id}', [VenueController::class, 'update']);
-
-//試合検索ルーティング
-Route::middleware(['auth:sanctum'])->get('/games/search', [GameController::class, 'search']);
-
-//資格登録ルーティング
-Route::middleware('auth:sanctum')->post('/licenses', [LicenseController::class, 'store']);
-//資格編集ルーティング
-Route::middleware('auth:sanctum')->group(function () {Route::get('/licenses/{id}', [LicenseController::class, 'show']); Route::put('/licenses/{id}', [LicenseController::class, 'update']);
-});
-//資格削除ルーティング
-Route::middleware('auth:sanctum')->delete('/licenses/{id}', [LicenseController::class, 'destroy']);
-//保有資格ルーティング
-Route::middleware('auth:sanctum')->get('/members/{id}/credentials', [HCredentialController::class, 'getForMember']);
-//イベント管理ルーティング
-Route::middleware('auth:sanctum')->group(function () {
     Route::get('/events', [EventController::class, 'index']);
     Route::post('/events', [EventController::class, 'store']);
     Route::get('/events/{id}', [EventController::class, 'show']);
@@ -204,5 +143,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/events/{id}', [EventController::class, 'destroy']);
 });
 
-//大会結果有 ディビジョン追加制御ルーティング
+// ログイン不要で使えるルート
+Route::post('/members', [MemberController::class, 'store']);
+Route::get('/members/search', [MemberController::class, 'search']);
+Route::post('/tournaments', [TournamentController::class, 'store']);
+Route::get('/tournaments', [TournamentController::class, 'index']);
+Route::get('/tournaments/{id}', [TournamentController::class, 'show']);
+Route::put('/tournaments/{id}', [TournamentController::class, 'update']);
+Route::get('/members/{id}/public', [MemberController::class, 'public']);
 Route::get('/tournament-results/{id}/exists', [TournamentResultController::class, 'exists']);
