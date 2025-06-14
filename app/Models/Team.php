@@ -13,24 +13,12 @@ class Team extends Model
     protected $primaryKey = 'id'; // 主キー
     public $incrementing = true;
     protected $keyType = 'int';
-    public $timestamps = false; // created_at / updated_at 無効
 
     protected $fillable = [
-        'year',
-        'team_id',
-        'team_name',
-        'representative_name',
-        'representative_kana',
-        'representative_tel',
-        'representative_email',
-        'male_members',
-        'female_members',
-        'medical_supporter',
-        'jrfu_coach',
-        'safety_lecturer',
-        'category',
-        'status',
-        'annual_fee_flg',
-        'individual_entry_flg',
-    ];
+    'year', 'team_id', 'team_name', 'representative_name',
+    'representative_kana', 'representative_tel', 'representative_email',
+    'male_members', 'female_members', 'medical_supporter', 'jrfu_coach',
+    'safety_lecturer', 'category', 'status', 'annual_fee_flg',
+    'individual_entry_flg', 'team_entry_flg'
+];
 }

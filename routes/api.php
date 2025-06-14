@@ -17,6 +17,9 @@ use App\Http\Controllers\HCredentialController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\MemberImportController;
 use App\Http\Controllers\MemberExportController;
+use App\Http\Controllers\TeamsImportController;
+use App\Http\Controllers\TeamController;
+
 
 // CSRF Cookie
 Route::get('/sanctum/csrf-cookie', function (Request $request) {
@@ -93,11 +96,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/families/reverse', [FamilyController::class, 'deleteReverse']);
     Route::post('/change-password', [PasswordController::class, 'change']);
 
-    Route::get('/teams', [App\Http\Controllers\TeamController::class, 'index']);
-    Route::post('/teams', [App\Http\Controllers\TeamController::class, 'store']);
-    Route::get('/teams/{id}', [App\Http\Controllers\TeamController::class, 'show']);
-    Route::put('/teams/{id}', [App\Http\Controllers\TeamController::class, 'update']);
-    Route::delete('/teams/{id}', [App\Http\Controllers\TeamController::class, 'destroy']);
+    Route::get('/teams', [TeamController::class, 'index']);
+    Route::post('/teams', [TeamController::class, 'store']);
+    Route::get('/teams/export', [TeamsImportController::class, 'export']);
+    Route::get('/teams/{id}', [TeamController::class, 'show']);
+    Route::put('/teams/{id}', [TeamController::class, 'update']);
+    Route::delete('/teams/{id}', [TeamController::class, 'destroy']);
+    Route::post('/teams/import-preview', [TeamsImportController::class, 'preview']);
+    Route::post('/teams/import', [TeamsImportController::class, 'import']);
+
+    
 
     Route::post('/tournament-results', [TournamentResultController::class, 'store']);
     Route::get('/tournament-results', [TournamentResultController::class, 'index']);
@@ -105,7 +113,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/tournament-results/{tournament_id}', [TournamentResultController::class, 'update']);
     Route::get('/tournament-results/{id}', [TournamentResultController::class, 'show']);
     Route::put('/tournament-results/update-by-tournament/{tournament_id}', [TournamentResultController::class, 'updateByTournament']);
-
     Route::delete('/tournaments/{id}', [TournamentController::class, 'destroy']);
 
     Route::get('/games', [GameController::class, 'index']);
