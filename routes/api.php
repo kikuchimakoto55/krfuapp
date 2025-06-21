@@ -16,6 +16,7 @@ use App\Http\Controllers\LicenseController;
 use App\Http\Controllers\HCredentialController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\MemberImportController;
+use App\Http\Controllers\MemberImportFromContactController;
 use App\Http\Controllers\MemberExportController;
 use App\Http\Controllers\TeamsImportController;
 use App\Http\Controllers\TeamController;
@@ -86,6 +87,7 @@ Route::options('/{any}', function () {
 // 認証必要なルート
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/members/export', [MemberExportController::class, 'export']); // ✅ ここを先に
+    Route::post('/members/import-from-contact', [MemberImportFromContactController::class, 'import']);
     Route::get('/members', [MemberController::class, 'index']);
     Route::get('/members/{id}', [MemberController::class, 'show']);
     Route::put('/members/{id}', [MemberController::class, 'update']);

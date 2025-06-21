@@ -34,6 +34,7 @@ class MemberImportController extends Controller
                 'birthday' => 'required|date',
                 'email' => 'nullable|email', // ← unique削除
                 'password' => 'required|string|min:8',
+                'grade_category' => ['nullable', 'integer'],
             ]);
 
             if ($validator->fails()) {
@@ -61,7 +62,7 @@ class MemberImportController extends Controller
         ]);
     }
 
-    // 実際の登録処理
+    // 通常CSVのインポート処理
     public function import(Request $request)
     {
         $records = $request->input('data');
@@ -94,3 +95,4 @@ class MemberImportController extends Controller
         return response()->json(['message' => 'インポート完了'], 200);
     }
 }
+
