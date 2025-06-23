@@ -195,7 +195,7 @@ class MemberImportFromContactController extends Controller
                         'email'              => $this->nullIfEmpty($row[$map['email']] ?? null),
                         'tel'                => $this->nullIfEmpty($row[$map['tel']] ?? null),
                         'remarks'            => $this->nullIfEmpty($row[$map['remarks']] ?? null),
-                        'classification'     => 5,
+                        'classification'     => 4,
                         'membershipfee_conf' => null,
                         'association_id'     => null,
                         'status'             => 1,
