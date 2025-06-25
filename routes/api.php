@@ -18,9 +18,10 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\MemberImportController;
 use App\Http\Controllers\MemberImportFromContactController;
 use App\Http\Controllers\MemberExportController;
+use App\Http\Controllers\AdminMemberPasswordController;
 use App\Http\Controllers\TeamsImportController;
 use App\Http\Controllers\TeamController;
-
+use Illuminate\Support\Facades\Log;
 
 // CSRF Cookie
 Route::get('/sanctum/csrf-cookie', function (Request $request) {
@@ -34,11 +35,19 @@ Route::post('/login', function (Request $request) {
         'password' => 'required',
     ]);
 
-    $member = Member::where('email', $credentials['email'])->first();
+    Log::debug('ログイン試行', ['email' => $credentials['email']]);
+
+    $member = Member::where('email', $credentials['email'])
+        ->where('status', 1)
+        ->where('del_flg', 0)
+        ->first();
 
     if (!$member || !Hash::check($credentials['password'], $member->password)) {
+        Log::warning('ログイン失敗', ['email' => $credentials['email']]);
         return response()->json(['message' => 'Unauthorized'], 401);
     }
+
+    Log::info('ログイン成功', ['member_id' => $member->member_id]);
 
     $token = $member->createToken('authToken')->plainTextToken;
 
@@ -86,7 +95,10 @@ Route::options('/{any}', function () {
 
 // 認証必要なルート
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/members/export', [MemberExportController::class, 'export']); // ✅ ここを先に
+    Route::put('/admin/members/{id}/password', [AdminMemberPasswordController::class, 'change']);
+    Route::post('/admin/members/{id}/password', [AdminMemberPasswordController::class, 'change']);
+
+    Route::get('/members/export', [MemberExportController::class, 'export']); //  ここを先に
     Route::post('/members/import-from-contact', [MemberImportFromContactController::class, 'import']);
     Route::get('/members', [MemberController::class, 'index']);
     Route::get('/members/{id}', [MemberController::class, 'show']);

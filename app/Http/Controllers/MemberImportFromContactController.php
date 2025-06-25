@@ -162,7 +162,8 @@ class MemberImportFromContactController extends Controller
                 $relationshipRaw = $row[$map['relationship']] ?? '';
                 $relationshipValue = $relationshipMap[$relationshipRaw] ?? null;
 
-                
+                $hashedPassword = Hash::make('import_default');
+                Log::debug('🔐 保存予定パスワードのハッシュ', ['hash' => $hashedPassword]);
 
                 $member = Member::updateOrCreate(
                     [
@@ -171,6 +172,7 @@ class MemberImportFromContactController extends Controller
                         'birthday' => $birthday->format('Y-m-d'),
                         'sex' => $sexValue,
                     ],
+                    
                     [
                         'sex'                => $sexValue,
                         'grade_category'     => $gradeValue,
@@ -200,7 +202,7 @@ class MemberImportFromContactController extends Controller
                         'association_id'     => null,
                         'status'             => 1,
                         'graduation_year'    => null,
-                        'password'           => Hash::make('import_default'),// 任意の仮パスワード
+                        'password'           => $hashedPassword,// 任意の仮パスワード
                         'authoritykinds_id'  => 4,
                         'authoritykindsname' => '使用者権限',
                         'login_date'         => null,
