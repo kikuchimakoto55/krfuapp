@@ -12,8 +12,8 @@ use Illuminate\Support\Facades\DB;
 class MemberController extends Controller
 {
      //家族登録モーダル
-public function search(Request $request)
-{
+    public function search(Request $request)
+    {
     $keyword = $request->input('keyword');
 
     if (!$keyword) {
@@ -37,10 +37,10 @@ public function search(Request $request)
         ->get();
 
     return response()->json(['data' => $members]);
-}
+    }
     
     public function index(Request $request)
-{
+    {
 	// 受信した検索条件を確認（デバッグ用）
     \Log::info('検索条件:', $request->all());
 	// 検索クエリを開始（削除フラグが 0 のデータのみ取得）
@@ -95,7 +95,7 @@ public function search(Request $request)
     
     //会員登録処理（バリデーション適用）
     public function store(StoreMemberRequest $request)
-{
+    {
     // 🔹 FormRequest（StoreMemberRequest）にてバリデーション済み
     $validated = $request->validated();
 
@@ -106,96 +106,80 @@ public function search(Request $request)
     $member = Member::create($validated);
 
     return response()->json(['message' => '登録完了', 'member' => $member], 201);
-}
+    }
 
-// 会員情報の取得（編集用）
-public function edit($id)
-{
-    $member = Member::findOrFail($id);
-    return response()->json($member);
-}
+    // 会員情報の取得（編集用）
+    public function edit($id)
+    {
+        $member = Member::findOrFail($id);
+        return response()->json($member);
+    }
 
-// 会員情報の更新
-public function update(UpdateMemberRequest $request, $id)
-{
-    $member = Member::findOrFail($id);
-    $data = $request->all();
+    // 会員情報の更新
+    public function update(UpdateMemberRequest $request, $id)
+    {
+        $member = Member::findOrFail($id);
+        $data = $request->except(['password', 'password_confirmation']); // 明示的に除外
+        $member->update($data);//  更新
 
-    // 🔐 パスワードが送信されていた場合のみ処理（空のときは無視）
-    if ($request->filled('password')) {
-        // 🔐 管理者チェック
-        if (!auth()->check() || auth()->user()->authoritykinds_id !== 1) {
-            return response()->json(['message' => 'パスワードの変更権限がありません'], 403);
+        return response()->json(['message' => '更新完了', 'member' => $member], 200);
+    }
+
+
+    // 会員詳細の取得（詳細画面表示用）
+    public function show($id)
+    {
+        $member = Member::with(['hCredentials.license'])->find($id); // 保有資格と関連資格を取得
+
+        if (!$member) {
+            return response()->json(['message' => '会員が見つかりません'], 404);
         }
 
-        // ハッシュ化してデータに含める
-        $data['password'] = Hash::make($request->password);
-    } else {
-        // パスワードが空の場合は update 対象から除外
-        unset($data['password']);
+        // 家族情報を取得（片方向でOKな場合）
+        $families = DB::table('t_families')
+            ->join('t_members', 't_members.member_id', '=', 't_families.family_id')
+            ->where('t_families.member_id', $id)
+            ->select(
+                't_families.id',
+                't_members.member_id',
+                't_members.username_sei',
+                't_members.username_mei',
+                't_families.relationship'
+            )
+            ->get();
+
+        return response()->json([
+            'member' => $member,
+            'families' => $families,
+            'h_credentials' => $member->hCredentials, // ← フロントと一致させる
+        ]);
     }
 
-    // 🔄 更新
-    $member->update($data);
+    public function destroy($id)
+    {
+        // 権限確認（管理者 or 運営のみ削除可）
+        if (!auth()->check() || !in_array(auth()->user()->authoritykinds_id, [1, 2])) {
+            return response()->json(['message' => '削除権限がありません'], 403);
+        }
 
-    return response()->json(['message' => '更新完了', 'member' => $member], 200);
-}
+        $member = Member::findOrFail($id);
+        $member->del_flg = 1; // 論理削除
+        $member->save();
 
-
-// 会員詳細の取得（詳細画面表示用）
-public function show($id)
-{
-    $member = Member::with(['hCredentials.license'])->find($id); // 保有資格と関連資格を取得
-
-    if (!$member) {
-        return response()->json(['message' => '会員が見つかりません'], 404);
+        return response()->json(['message' => '削除完了']);
     }
 
-    // 家族情報を取得（片方向でOKな場合）
-    $families = DB::table('t_families')
-        ->join('t_members', 't_members.member_id', '=', 't_families.family_id')
-        ->where('t_families.member_id', $id)
-        ->select(
-            't_families.id',
-            't_members.member_id',
-            't_members.username_sei',
-            't_members.username_mei',
-            't_families.relationship'
-        )
-        ->get();
+    // 会員登録完了画面でメールアドレス取得
+    public function public($id)
+    {
+        $member = TMember::find($id);
+        if (!$member) {
+            return response()->json(['message' => '会員が見つかりません'], 404);
+        }
 
-    return response()->json([
-        'member' => $member,
-        'families' => $families,
-        'h_credentials' => $member->hCredentials, // ← フロントと一致させる
-    ]);
-}
-
-public function destroy($id)
-{
-    // 権限確認（管理者 or 運営のみ削除可）
-    if (!auth()->check() || !in_array(auth()->user()->authoritykinds_id, [1, 2])) {
-        return response()->json(['message' => '削除権限がありません'], 403);
+        return response()->json([
+            'email' => $member->email
+        ]);
     }
-
-    $member = Member::findOrFail($id);
-    $member->del_flg = 1; // 論理削除
-    $member->save();
-
-    return response()->json(['message' => '削除完了']);
-}
-
-// 会員登録完了画面でメールアドレス取得
-public function public($id)
-{
-    $member = TMember::find($id);
-    if (!$member) {
-        return response()->json(['message' => '会員が見つかりません'], 404);
-    }
-
-    return response()->json([
-        'email' => $member->email
-    ]);
-}
 
 }

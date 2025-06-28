@@ -163,7 +163,7 @@ class MemberImportFromContactController extends Controller
                 $relationshipValue = $relationshipMap[$relationshipRaw] ?? null;
 
                 $hashedPassword = Hash::make('import_default');
-                Log::debug('🔐 保存予定パスワードのハッシュ', ['hash' => $hashedPassword]);
+                Log::debug(' 保存予定パスワードのハッシュ', ['hash' => $hashedPassword]);
 
                 $member = Member::updateOrCreate(
                     [

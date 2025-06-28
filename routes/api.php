@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\Member;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\PasswordController;
+use App\Http\Controllers\InitialPasswordController;
 use App\Http\Controllers\FamilyController;
 use App\Http\Controllers\TournamentController;
 use App\Http\Controllers\TournamentResultController;
@@ -50,6 +51,11 @@ Route::post('/login', function (Request $request) {
     Log::info('ログイン成功', ['member_id' => $member->member_id]);
 
     $token = $member->createToken('authToken')->plainTextToken;
+    //  権限種別が使用者権限ユーザーチェック
+    $isResetRequired = (
+        $member->authoritykinds_id === 4 &&
+        is_null($member->login_date)
+    );
 
     return response()->json([
         'token' => $token,
@@ -57,8 +63,9 @@ Route::post('/login', function (Request $request) {
             'member_id' => $member->member_id,
             'email' => $member->email,
             'authoritykinds_id' => $member->authoritykinds_id,
-            'authoritykindsname' => $member->authoritykindsname
-        ]
+            'authoritykindsname' => $member->authoritykindsname,
+        ],
+        'reset_required' => $isResetRequired, //  フラグをここで追加
     ]);
 });
 
@@ -97,6 +104,7 @@ Route::options('/{any}', function () {
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/admin/members/{id}/password', [AdminMemberPasswordController::class, 'change']);
     Route::post('/admin/members/{id}/password', [AdminMemberPasswordController::class, 'change']);
+    
 
     Route::get('/members/export', [MemberExportController::class, 'export']); //  ここを先に
     Route::post('/members/import-from-contact', [MemberImportFromContactController::class, 'import']);
@@ -109,6 +117,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::delete('/families/reverse', [FamilyController::class, 'deleteReverse']);
     Route::post('/change-password', [PasswordController::class, 'change']);
+    Route::put('/members/{id}/password-initial', [InitialPasswordController::class, 'change']);
 
     Route::get('/teams', [TeamController::class, 'index']);
     Route::post('/teams', [TeamController::class, 'store']);
