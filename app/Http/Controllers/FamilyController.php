@@ -99,13 +99,15 @@ class FamilyController extends Controller
         ->join('t_members', 't_families.family_id', '=', 't_members.member_id')
         ->where('t_families.member_id', $memberId)
         ->select(
-            't_families.id',               // ← 編集・削除用
-            't_families.family_id',        // ← 逆解除時に必要
-            't_families.relationship',
+            't_families.id',                      // 編集・解除用
+            't_families.family_id',              // 家族ID（join先）
+            't_families.member_id',              // 検索元会員ID（本人）
+            't_families.relationship',           // 続柄
             't_members.username_sei',
             't_members.username_mei',
             't_members.email',
-            't_members.tel'
+            't_members.tel',
+            't_members.grade_category'           // 学年カテゴリ（追加）
         )
         ->get();
 

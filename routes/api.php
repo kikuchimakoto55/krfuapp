@@ -117,6 +117,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/members/import', [MemberImportController::class, 'import']);
 
     Route::post('/families', [FamilyController::class, 'store']);
+    Route::get('/families/search', [FamilyController::class, 'search']);
     Route::delete('/families/reverse', [FamilyController::class, 'deleteReverse']);
     Route::post('/change-password', [PasswordController::class, 'change']);
     Route::put('/members/{id}/password-initial', [InitialPasswordController::class, 'change']);
