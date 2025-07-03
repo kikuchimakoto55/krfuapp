@@ -14,6 +14,7 @@ class MemberController extends Controller
      //家族登録モーダル
     public function search(Request $request)
     {
+
     $keyword = $request->input('keyword');
 
     if (!$keyword) {

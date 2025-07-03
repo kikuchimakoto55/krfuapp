@@ -109,6 +109,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/members/export', [MemberExportController::class, 'export']); //  ここを先に
     Route::post('/members/import-from-contact', [MemberImportFromContactController::class, 'import']);
     Route::get('/members', [MemberController::class, 'index']);
+    Route::get('/members/search', [MemberController::class, 'search']);
     Route::get('/members/{id}', [MemberController::class, 'show']);
     Route::put('/members/{id}', [MemberController::class, 'update']);
     Route::delete('/members/{id}', [MemberController::class, 'destroy']);
@@ -175,7 +176,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 // ログイン不要で使えるルート
 Route::post('/members', [MemberController::class, 'store']);
-Route::get('/members/search', [MemberController::class, 'search']);
 Route::post('/tournaments', [TournamentController::class, 'store']);
 Route::get('/tournaments', [TournamentController::class, 'index']);
 Route::get('/tournaments/{id}', [TournamentController::class, 'show']);
