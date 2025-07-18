@@ -90,4 +90,23 @@ class RankupImportController extends Controller
             'skipped' => $skipCount,
         ]);
     }
+
+    public function list()
+    {
+        $records = \App\Models\Rankup::where('rankup_flg', 0)
+            ->orderBy('id', 'desc')
+            ->get()
+            ->map(function ($r) {
+                return [
+                    'id'               => $r->id,
+                    'username_kana_s'  => $r->username_kana_s,
+                    'username_kana_m'  => $r->username_kana_m,
+                    'sex'              => $r->sex,
+                    'birthday'         => sprintf('%04d-%02d-%02d', $r->birthday1, $r->birthday2, $r->birthday3),
+                    'rankup_flg'       => $r->rankup_flg,
+                ];
+            });
+
+        return response()->json($records);
+    }
 }

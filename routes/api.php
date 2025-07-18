@@ -24,6 +24,7 @@ use App\Http\Controllers\TeamsImportController;
 use App\Http\Controllers\TeamController;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\RankupImportController;
+use App\Http\Controllers\RankupProcessController;
 
 // CSRF Cookie
 Route::get('/sanctum/csrf-cookie', function (Request $request) {
@@ -177,6 +178,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/events/{id}', [EventController::class, 'destroy']);
 
     Route::post('/rankup/import', [RankupImportController::class, 'import']);
+    Route::post('/rankup/process', [RankupProcessController::class, 'process']);
+    Route::get('/rankup/list', [RankupImportController::class, 'list']);
 });
 
 // ログイン不要で使えるルート
