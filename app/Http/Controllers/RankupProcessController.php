@@ -8,6 +8,8 @@ use App\Models\Rankup;
 use App\Models\Member;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class RankupProcessController extends Controller
 {
@@ -41,11 +43,16 @@ class RankupProcessController extends Controller
         $unmatchedRecords = [];
 
         foreach ($records as $r) {
-            $fullBirthday = sprintf('%04d-%02d-%02d', $r->birthday1, $r->birthday2, $r->birthday3);
+            $fullBirthday = Carbon::createFromDate($r->birthday1, $r->birthday2, $r->birthday3)->format('Y-m-d');
 
-            $member = Member::where('username_kana_s', $r->username_kana_s)
-                ->where('username_kana_m', $r->username_kana_m)
-                ->where('sex', $r->sex)
+            $kana_s = mb_convert_kana(trim($r->username_kana_s), 'KV');
+            $kana_m = mb_convert_kana(trim($r->username_kana_m), 'KV');
+            $sex = (int)$r->sex;
+            
+
+            $member = Member::where('username_kana_s', $kana_s)
+                ->where('username_kana_m', $kana_m)
+                ->where('sex', $sex)
                 ->where('birthday', $fullBirthday)
                 ->first();
 
@@ -63,52 +70,76 @@ class RankupProcessController extends Controller
                 });
                 $updatedCount++;
             } else {
-                $failReason = [];
-                $target = Member::where('username_kana_s', $r->username_kana_s)
-                    ->where('username_kana_m', $r->username_kana_m)
-                    ->first();
+                    $failReason = [];
 
-                if (!$target) {
-                    $failReason[] = '氏名';
-                } elseif ($target->sex !== $r->sex) {
-                    $failReason[] = '性別';
-                } elseif ($target->birthday !== $fullBirthday) {
-                    $failReason[] = '生年月日';
+                    $target = Member::where('username_kana_s', $kana_s)
+                        ->where('username_kana_m', $kana_m)
+                        ->first();
+
+                    if (!$target) {
+                        $failReason[] = '氏名';
+                    } else {
+                        if ((int)$target->sex !== $sex) {
+                            $failReason[] = '性別';
+                        }
+                        if ($target->birthday !== $fullBirthday) {
+                            $failReason[] = '生年月日';
+                        }
+                    }
+
+                    Log::info("不一致データ：kana_s={$kana_s}, kana_m={$kana_m}, sex={$sex}, birthday={$fullBirthday} → 不一致項目: " . implode('・', $failReason));
+
+                    $unmatchedRecords[] = [
+                        'username_kana_s' => $r->username_kana_s,
+                        'username_kana_m' => $r->username_kana_m,
+                        'sex'             => $r->sex,
+                        'birthday1'       => $r->birthday1,
+                        'birthday2'       => $r->birthday2,
+                        'birthday3'       => $r->birthday3,
+                        '不一致カラム'       => implode('・', $failReason) ?: '全体不一致',
+                    ];
                 }
-
-                $unmatchedRecords[] = [
-                    'username_kana_s' => $r->username_kana_s,
-                    'username_kana_m' => $r->username_kana_m,
-                    'sex'             => $r->sex,
-                    'birthday1'       => $r->birthday1,
-                    'birthday2'       => $r->birthday2,
-                    'birthday3'       => $r->birthday3,
-                    '不一致カラム'       => implode('・', $failReason) ?: '全体不一致',
-                ];
             }
-        }
 
         Log::info(" 更新件数: {$updatedCount}, 不一致: " . count($unmatchedRecords));
 
         // Step 3: CSV出力
         if (count($unmatchedRecords) > 0) {
-            return new StreamedResponse(function () use ($unmatchedRecords) {
-                $stream = fopen('php://output', 'w');
-                fputcsv($stream, ['username_kana_s', 'username_kana_m', 'sex', 'birthday1', 'birthday2', 'birthday3', '不一致カラム']);
-                foreach ($unmatchedRecords as $row) {
-                    fputcsv($stream, $row);
-                }
-                fclose($stream);
-            }, 200, [
-                'Content-Type' => 'text/csv',
-                'Content-Disposition' => 'attachment; filename="unmatched_rankup.csv"',
-            ]);
+            $csvPath = storage_path('app/rankup/unmatched_rankup.csv');
+
+            // ディレクトリがなければ作成
+            if (!file_exists(dirname($csvPath))) {
+                mkdir(dirname($csvPath), 0777, true);
+            }
+
+            // CSVファイルを書き出し
+            $fp = fopen($csvPath, 'w');
+            fputcsv($fp, ['username_kana_s', 'username_kana_m', 'sex', 'birthday1', 'birthday2', 'birthday3', '不一致カラム']);
+            foreach ($unmatchedRecords as $row) {
+                fputcsv($fp, $row);
+            }
+            fclose($fp);
         }
 
+        // ↓↓ Vue 側で unmatchedData 表示するため JSON で返す
         return response()->json([
             'message' => '年度更新完了',
             'updated' => $updatedCount,
-            'unmatched' => 0,
+            'unmatched' => count($unmatchedRecords),
+            'unmatched_records' => $unmatchedRecords,
+            'csv_download_url' => count($unmatchedRecords) > 0 ? url('/api/rankup/download-unmatched') : null,
+        ]);
+    }
+
+    public function downloadUnmatched()
+    {
+        $filePath = storage_path('app/rankup/unmatched_rankup.csv');
+        if (!file_exists($filePath)) {
+            abort(404, 'CSVファイルが存在しません。');
+        }
+
+        return response()->download($filePath, 'unmatched_rankup.csv', [
+            'Content-Type' => 'text/csv',
         ]);
     }
 }
