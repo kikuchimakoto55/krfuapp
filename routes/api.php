@@ -27,6 +27,7 @@ use App\Http\Controllers\RankupImportController;
 use App\Http\Controllers\RankupProcessController;
 
 
+
 // CSRF Cookie
 Route::get('/sanctum/csrf-cookie', function (Request $request) {
     return response()->noContent();
@@ -182,6 +183,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/rankup/process', [RankupProcessController::class, 'process']);
     Route::get('/rankup/list', [RankupImportController::class, 'list']);
     Route::get('/rankup/download-unmatched', [RankupProcessController::class, 'downloadUnmatched']);
+    Route::delete('/rankup/delete-all', [RankupProcessController::class, 'deleteAll']);
 });
 
 // ログイン不要で使えるルート

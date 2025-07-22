@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 
+
 class RankupProcessController extends Controller
 {
     public function process()
@@ -47,7 +48,15 @@ class RankupProcessController extends Controller
 
             $kana_s = mb_convert_kana(trim($r->username_kana_s), 'KV');
             $kana_m = mb_convert_kana(trim($r->username_kana_m), 'KV');
-            $sex = (int)$r->sex;
+            $csvSex = trim($r->sex ?? '');
+            $sex = match($csvSex) {
+                '男' => 1,
+                '女' => 2,
+                default => null,
+            };
+
+            // ログ出力（デバッグ目的）
+            Log::info("CSV性別原文: {$r->sex} / トリム後: {$csvSex} / 数値化: {$sex}");
             
 
             $member = Member::where('username_kana_s', $kana_s)
@@ -142,4 +151,30 @@ class RankupProcessController extends Controller
             'Content-Type' => 'text/csv',
         ]);
     }
+
+    public function deleteAll(Request $request)
+    {
+        $mode = $request->input('mode', 'unprocessed'); // デフォルト: 未処理のみ
+
+        if ($mode === 'all') {
+            \App\Models\Rankup::truncate(); // 全削除（IDリセット含む）
+            Log::info(" 全ての年度更新インポートデータを削除しました。");
+
+            return response()->json([
+                'message' => '全てのインポートデータを削除しました。',
+            ]);
+        } elseif ($mode === 'unprocessed') {
+            \App\Models\Rankup::where('rankup_flg', 0)->delete();
+            Log::info(" 未処理の年度更新インポートデータのみ削除しました。");
+
+            return response()->json([
+                'message' => '未処理のインポートデータを削除しました。',
+            ]);
+        } else {
+            return response()->json([
+                'message' => '無効な削除モードが指定されました。',
+            ], 400);
+        }
+    }
+    
 }
