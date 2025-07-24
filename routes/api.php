@@ -184,6 +184,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/rankup/list', [RankupImportController::class, 'list']);
     Route::get('/rankup/download-unmatched', [RankupProcessController::class, 'downloadUnmatched']);
     Route::delete('/rankup/delete-all', [RankupProcessController::class, 'deleteAll']);
+    Route::get('/rankup/unmatched-members', [RankupProcessController::class, 'unmatchedMembers']);
 });
 
 // ログイン不要で使えるルート

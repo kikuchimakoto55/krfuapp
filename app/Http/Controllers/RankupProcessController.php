@@ -114,30 +114,21 @@ class RankupProcessController extends Controller
 
         // Step 3: CSV出力
         if (count($unmatchedRecords) > 0) {
-            $csvPath = storage_path('app/rankup/unmatched_rankup.csv');
+            $csvHeader = ['username_kana_s', 'username_kana_m', 'sex', 'birthday1', 'birthday2', 'birthday3', '不一致カラム'];
 
-            // ディレクトリがなければ作成
-            if (!file_exists(dirname($csvPath))) {
-                mkdir(dirname($csvPath), 0777, true);
-            }
+            $callback = function () use ($unmatchedRecords, $csvHeader) {
+                $stream = fopen('php://output', 'w');
+                fputcsv($stream, $csvHeader);
+                foreach ($unmatchedRecords as $row) {
+                    fputcsv($stream, $row);
+                }
+                fclose($stream);
+            };
 
-            // CSVファイルを書き出し
-            $fp = fopen($csvPath, 'w');
-            fputcsv($fp, ['username_kana_s', 'username_kana_m', 'sex', 'birthday1', 'birthday2', 'birthday3', '不一致カラム']);
-            foreach ($unmatchedRecords as $row) {
-                fputcsv($fp, $row);
-            }
-            fclose($fp);
+            return response()->streamDownload($callback, 'unmatched_rankup.csv', [
+                'Content-Type' => 'text/csv',
+            ]);
         }
-
-        // ↓↓ Vue 側で unmatchedData 表示するため JSON で返す
-        return response()->json([
-            'message' => '年度更新完了',
-            'updated' => $updatedCount,
-            'unmatched' => count($unmatchedRecords),
-            'unmatched_records' => $unmatchedRecords,
-            'csv_download_url' => count($unmatchedRecords) > 0 ? url('/api/rankup/download-unmatched') : null,
-        ]);
     }
 
     public function downloadUnmatched()
@@ -175,6 +166,58 @@ class RankupProcessController extends Controller
                 'message' => '無効な削除モードが指定されました。',
             ], 400);
         }
+    }
+
+    public function unmatchedMembers()
+    {
+        $unmatched = Member::from('t_members')
+        ->select(
+            't_members.grade_category',
+            't_members.username_kana_s',
+            't_members.username_kana_m',
+            't_members.sex',
+            't_members.birthday'
+        )
+        ->leftJoin('rankups_table', function ($join) {
+            $join->on('t_members.username_kana_s', '=', DB::raw("TRIM(rankups_table.username_kana_s)"))
+                ->on('t_members.username_kana_m', '=', DB::raw("TRIM(rankups_table.username_kana_m)"))
+                ->on('t_members.sex', '=', DB::raw("CASE rankups_table.sex WHEN '男' THEN 1 WHEN '女' THEN 2 ELSE NULL END"))
+                ->on('t_members.birthday', '=', DB::raw("STR_TO_DATE(CONCAT(rankups_table.birthday1, '-', rankups_table.birthday2, '-', rankups_table.birthday3), '%Y-%m-%d')"));
+        })
+        ->whereNull('rankups_table.id')
+        ->get();
+
+        $csvHeader = ['学年カテゴリ', '姓(かな)', '名(かな)', '性別', '生年月日'];
+
+        $callback = function () use ($unmatched, $csvHeader) {
+            $stream = fopen('php://output', 'w');
+            fputcsv($stream, $csvHeader);
+
+            foreach ($unmatched as $row) {
+                fputcsv($stream, [
+                    $this->getGradeCategoryLabel($row->grade_category),
+                    $row->username_kana_s,
+                    $row->username_kana_m,
+                    $this->getSexLabel($row->sex),
+                    $row->birthday,
+                ]);
+            }
+            fclose($stream);
+        };
+
+        return response()->streamDownload($callback, 'unmatched_members.csv', [
+            'Content-Type' => 'text/csv',
+        ]);
+    }
+
+    private function getGradeCategoryLabel($value)
+    {
+        return config('labels.grade_categories')[(int)$value] ?? '-';
+    }
+
+    private function getSexLabel($value)
+    {
+        return config('labels.sexes')[(int)$value] ?? '-';
     }
     
 }
