@@ -25,6 +25,7 @@ use App\Http\Controllers\TeamController;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\RankupImportController;
 use App\Http\Controllers\RankupProcessController;
+use App\Http\Controllers\DashboardController;
 
 
 
@@ -87,10 +88,12 @@ Route::middleware('auth:sanctum')->post('/logout', function (Request $request) {
 // 認証済みユーザー情報取得
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return response()->json([
-        'id' => $request->user()->id,
+        'member_id' => $request->user()->member_id,
+        'username_sei' => $request->user()->username_sei,
         'email' => $request->user()->email,
         'authoritykinds_id' => $request->user()->authoritykinds_id,
-        'authoritykindsname' => $request->user()->authoritykindsname
+        'authoritykindsname' => $request->user()->authoritykindsname,
+        
     ]);
 });
 
@@ -185,6 +188,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/rankup/download-unmatched', [RankupProcessController::class, 'downloadUnmatched']);
     Route::delete('/rankup/delete-all', [RankupProcessController::class, 'deleteAll']);
     Route::get('/rankup/unmatched-members', [RankupProcessController::class, 'unmatchedMembers']);
+
+    Route::get('/dashboard/grades', [DashboardController::class, 'gradeStats']);
+    Route::get('/dashboard/licenses', [DashboardController::class, 'licenseStats']);
+    
 });
 
 // ログイン不要で使えるルート
