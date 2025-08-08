@@ -74,5 +74,10 @@ class Member extends Authenticatable
                 ->with('license');
     }
 
+    public function coaches()
+    {
+        return $this->hasMany(Coach::class, 'member_id', 'member_id');
+    }
+
     
 }
