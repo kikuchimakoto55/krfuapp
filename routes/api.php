@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\RankupImportController;
 use App\Http\Controllers\RankupProcessController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\CoachKindController;
 
 
 
@@ -191,6 +192,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('/dashboard/grades', [DashboardController::class, 'gradeStats']);
     Route::get('/dashboard/licenses', [DashboardController::class, 'licenseStats']);
+
+    Route::get('/coach-kinds', [CoachKindController::class, 'index']);
+    Route::get('/coach-kinds/{id}', [CoachKindController::class, 'show']);
+    Route::post('/coach-kinds', [CoachKindController::class, 'store']);
+    Route::put('/coach-kinds/{id}', [CoachKindController::class, 'update']);
+    Route::delete('/coach-kinds/{id}', [CoachKindController::class, 'destroy']);
     
 });
 
