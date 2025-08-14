@@ -27,6 +27,7 @@ use App\Http\Controllers\RankupImportController;
 use App\Http\Controllers\RankupProcessController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CoachKindController;
+use App\Http\Controllers\CommitteeKindController;
 
 
 
@@ -198,6 +199,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/coach-kinds', [CoachKindController::class, 'store']);
     Route::put('/coach-kinds/{id}', [CoachKindController::class, 'update']);
     Route::delete('/coach-kinds/{id}', [CoachKindController::class, 'destroy']);
+
+    Route::get   ('/committee-kinds',       [CommitteeKindController::class, 'index']);
+    Route::get   ('/committee-kinds/{id}',  [CommitteeKindController::class, 'show']);
+    Route::post  ('/committee-kinds',       [CommitteeKindController::class, 'store']);
+    Route::put   ('/committee-kinds/{id}',  [CommitteeKindController::class, 'update']);
+    Route::delete('/committee-kinds/{id}',  [CommitteeKindController::class, 'destroy']);
     
 });
 
