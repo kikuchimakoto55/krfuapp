@@ -27,6 +27,7 @@ use App\Http\Controllers\RankupImportController;
 use App\Http\Controllers\RankupProcessController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CoachKindController;
+use App\Http\Controllers\APositionKindController;
 use App\Http\Controllers\CommitteeKindController;
 
 
@@ -206,6 +207,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put   ('/committee-kinds/{id}',  [CommitteeKindController::class, 'update']);
     Route::delete('/committee-kinds/{id}',  [CommitteeKindController::class, 'destroy']);
     
+    Route::get('/a-position-kinds', [APositionKindController::class, 'index']);
+    Route::get('/a-position-kinds/{id}', [APositionKindController::class, 'show']);
+    Route::post('/a-position-kinds', [APositionKindController::class, 'store']);
+    Route::put('/a-position-kinds/{id}', [APositionKindController::class, 'update']);
+    Route::delete('/a-position-kinds/{id}', [APositionKindController::class, 'destroy']);
 });
 
 // ログイン不要で使えるルート
