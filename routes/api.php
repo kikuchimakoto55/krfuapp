@@ -29,6 +29,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CoachKindController;
 use App\Http\Controllers\APositionKindController;
 use App\Http\Controllers\CommitteeKindController;
+use App\Http\Controllers\CoachController;
 
 
 
@@ -212,6 +213,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/a-position-kinds', [APositionKindController::class, 'store']);
     Route::put('/a-position-kinds/{id}', [APositionKindController::class, 'update']);
     Route::delete('/a-position-kinds/{id}', [APositionKindController::class, 'destroy']);
+
+    Route::post('/coaches', [CoachController::class, 'store']); // ひも付け登録
+    Route::delete('/coaches/{coach}', [CoachController::class, 'destroy']);
+    Route::put('/coaches/{coach}', [CoachController::class, 'update']);
+    Route::get('/coaches', [CoachController::class, 'index']);
+    Route::get('/coaches/{coach}', [CoachController::class, 'show']);
+    
 });
 
 // ログイン不要で使えるルート
