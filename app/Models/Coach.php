@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Member;
 
 class Coach extends Model
 {
@@ -56,5 +57,11 @@ class Coach extends Model
     {
         return $q->where('role_type', $roleType)
                  ->where('role_kinds_id', $roleKindsId);
+    }
+
+    public function member()
+    {
+        // FK: member_id, PK: member_id
+        return $this->belongsTo(Member::class, 'member_id', 'member_id');
     }
 }

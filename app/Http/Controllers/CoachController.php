@@ -325,7 +325,8 @@ class CoachController extends Controller
 
     public function index(): JsonResponse
     {
-        $items = Coach::where('del_flg', 0)
+        $items = Coach::with(['member:member_id,username_sei,username_mei']) // ★追加
+            ->where('del_flg', 0)
             ->orderBy('member_id')
             ->orderBy('role_type')
             ->orderBy('role_kinds_id')
@@ -337,13 +338,15 @@ class CoachController extends Controller
                 'registration_date',
                 'update_date',
             ]);
-
         return response()->json($items);
     }
 
     public function show(int $coachId): JsonResponse
     {
-        $rec = Coach::findOrFail($coachId);
+        $rec = Coach::with(['member:member_id,username_sei,username_mei'])->findOrFail($coachId);
+        $memberName = $rec->member
+        ? ($rec->member->username_sei . ' ' . $rec->member->username_mei)
+        : null;
 
         return response()->json([
             'coach_id'        => $rec->coach_id,
@@ -356,6 +359,12 @@ class CoachController extends Controller
             'registration_date' => $rec->registration_date,
             'update_date'       => $rec->update_date,
             'del_flg'         => $rec->del_flg,
+            'member_name'        => $memberName,
+            'member'             => $rec->member ? [
+                    'member_id'     => $rec->member->member_id,
+                    'username_sei'  => $rec->member->username_sei,
+                    'username_mei'  => $rec->member->username_mei,
+                ] : null,
         ]);
     }
 }
